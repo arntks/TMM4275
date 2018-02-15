@@ -1,0 +1,19 @@
+(in-package :aml)
+
+(define-class support-base-class
+  :inherit-from (object)
+  :properties (
+               ;;asumes iso standard
+               base-width (default 0.5)
+               base-depth (default 2)
+               base height (default 0.5)
+               )
+  :subobjects (
+               (base :class 'box-object
+                height ^base-heigth
+                width ^base-width
+                depth ^base-depth
+                
+                )
+               )
+ )
