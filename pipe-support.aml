@@ -3,36 +3,19 @@
 (define-class pipe-support-class
   :inherit-from (object)
   :properties (
+               pipe-diameter (default 0.5)
                
-               
-               )
- )
-
-(define-class pipe-dimensions-class
-  :inherit-from (object)
-  :properties (
-               pipe-radius (default 0.5)
-               )
- :subobject (
-             (pipe-object :class 'object
-                 pipe-radius 0.5
-                 )
-             )
- )
-
-(define-class support-base-class
-  :inherit-from (object)
-  :properties (
-               ;;asumes iso standard
                base-width (default 0.5)
                base-depth (default 2)
                base-height (default 0.5)
                )
   :subobjects (
-               (base-class :class 'box-object
-                width (the pipe-radius (:from pipe-object))
-                depth (* ^width 4)
-                height ^width
-                )
+               (base :class 'box-object
+                   base-width ^^pipe-diameter
+                   base-depth (* ^base-width 4)
+                   base-height ^base-width
+                   )
                )
- )
+  )
+
+
