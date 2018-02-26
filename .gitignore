@@ -2,5 +2,5 @@ README.md
 
 # AML
 *.aml~
-*.#aml
+*.aml#
 

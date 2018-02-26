@@ -1,8 +1,120 @@
 (in-package :aml)
 
+
+
+(define-class base-concrete-class
+  :inherit-from (object)
+  :properties (
+               pipe-diameter (default 0.5)
+               width (default 0.5)
+               height (default 0.5)
+               depth (default 0.5)
+               )
+  :subobjects (
+               (base :class 'box-object
+                   width ^^pipe-diameter
+                   base-width width
+                   depth (* 4 ^width)
+                   base-depth depth
+                   height ^width
+                   base-height height
+                   orientation (list
+                                (rotate 90 '(1 0 0))
+                                (rotate 90 '(0 0 1))
+                                (translate (list 0 0 (- (+ (/ ^^pipe-diameter 2.9) ))))
+                                )
+                   )
+               )
+  ) 
+  
+)
+(define-class base-ibeam-class
+  :inherit-from (object)
+  :properties (
+               pipe-diameter (default 0.5)
+               width (default 0.5)
+               height (default 0.5)
+               depth (default 0.5)
+               )
+  :subobjects (
+               (top :class 'box-object
+                   width (/ ^^pipe-diameter 4)
+                   base-width ^width
+                   depth (* 8 ^width)
+                   base-depth depth
+                   height (/ ^^pipe-diameter 32)
+                   base-height ^height
+                   orientation(list
+                               (rotate 90 '(1 0 0))
+                               (rotate 90 '(0 1 0))
+                               (rotate 90 '(0 0 1))
+                               (rotate 90 '(1 0 0))
+                               (translate (list 0 0 (+ (/ ^width 4) (* ^height 2.5))))
+                               
+                               )
+                   
+                   )
+               (middle :class 'box-object
+                   width (/ ^^pipe-diameter 4)
+                   base-width ^width
+                   depth (* 8 ^width)
+                   base-depth depth
+                   height (/ ^^pipe-diameter 32)
+                   base-height ^height
+                   orientation(list
+                               (rotate 90 '(0 1 0))
+                               (translate (list 0 ^height 0))
+                               (rotate 90 '(0 0 1))
+                               (rotate 90 '(0 0 1))
+                               (translate (list 0 ^height 0))
+                               )
+                   )
+                (bottom :class 'box-object
+                   width (/ ^^pipe-diameter 4)
+                   base-width ^width
+                   depth (* 8 ^width)
+                   base-depth depth
+                   height (/ ^^pipe-diameter 32)
+                   base-height ^height
+                   orientation(list
+                               (rotate 90 '(1 0 0))
+                               (rotate 90 '(0 1 0))
+                               (rotate 90 '(0 0 1))
+                               (rotate 90 '(1 0 0))
+                               (translate (list 0 0 (-(+ (/ ^width 4) (* ^height 2.5)))))
+                               
+                               )
+                   
+                   )
+               )
+  )
+
+(define-class pipe-class
+  :inherit-from (object)
+  :properties (
+               pipe-diameter (default 0.5)
+               pipe-thickness (default (/ ^pipe-diameter 20))
+               pipe-height (default (* ^pipe-diameter 5))
+               )
+  :subobjects (
+               (pipe :class 'pipe-object 
+                   outer-diameter ^^pipe-diameter
+                   thickness ^^pipe-thickness
+                   height ^^pipe-height
+                   orientation(list
+                               (rotate 90 '(1 0 0))
+                               
+                               (translate (list 0 0 (+ (/ ^^pipe-diameter 2) (/ ^^pipe-diameter 8) (/ ^^pipe-diameter 32))))
+                               )
+                   )
+               )
+  )
+
 (define-class pipe-support-class
   :inherit-from (object)
   :properties (
+               base-support-type (default 'ibeam)
+               ;;base-support-type 'concrete
                pipe-diameter (default 0.5)
                
                base-width (default 0.5)
@@ -10,12 +122,16 @@
                base-height (default 0.5)
                )
   :subobjects (
-               (base :class 'box-object
-                   base-width ^^pipe-diameter
-                   base-depth (* ^base-width 4)
-                   base-height ^base-width
-                   )
-               )
+             (base :class (case !base-support-type
+                            (concrete 'base-concrete-class)
+                            (ibeam 'base-ibeam-class)
+                            (t 'base-concrete-class)
+                            )
+                 pipe-diameter ^^pipe-diameter
+                 
+                 )
+             (pipe :class 'pipe-class
+                 pipe-diameter ^^pipe-diameter
+                 )
+             )
   )
-
-
