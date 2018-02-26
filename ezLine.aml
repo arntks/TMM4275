@@ -1,0 +1,193 @@
+(in-package :aml)
+
+(define-class base-class
+  :inherit-from (box-object)
+  :properties (
+               width (+ (* ^^outer-pipe-radius 2) ^^ubeam-pipe-gap)
+               height ^^base-height 
+               depth ^^base-depth
+               )
+  )
+
+(define-class ubeam-class
+  :inherit-from (object);;pipe-elbow-class
+  :properties (
+               ;;pipe-elbow-properties
+               angle ^^ubeam-angle
+               elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
+               thickness ^^ubeam-thickness
+               outer-diameter ^^ubeam-outer-diameter
+
+               outer-pipe-radius ^^outer-pipe-radius
+
+               ;;open-cylinder-properties
+               ubeam-pipe-gap ^^ubeam-pipe-gap
+               pipe-height ^^pipe-height
+               base-depth ^^base-depth
+               diameter ^^pipe-diameter
+               height ^^pipe-height
+
+               
+               )
+
+  :subobjects (
+               (ubeam-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (* ^^outer-pipe-radius 1.2))
+                   )
+               (ubeam :class 'pipe-elbow-object
+                   angle ^^ubeam-angle
+                   elbow-radius ^^elbow-radius
+                   thickness ^^thickness
+                   outer-diameter ^^outer-diameter
+
+                   orientation (list
+                                (rotate 90 '(0 0 1)))
+                   reference-coordinate-system ^^ubeam-coordinate-system
+                   )
+               (ubeam-pipe-coordinate-system :class 'coordinate-system-class
+                   origin (list (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) 0.0 (-(/ ^^pipe-height 2))) 
+                   reference-coordinate-system ^^ubeam-coordinate-system
+                   )
+
+               (ubeam-pipe-right :class 'open-cylinder-object
+                   diameter ^^diameter
+                   height ^^height
+                   reference-coordinate-system ^^ubeam-pipe-coordinate-system
+                   )
+               (ubeam-pipe-left :class 'open-cylinder-object
+                   diameter ^^diameter
+                   height ^^height
+
+                   orientation (list
+                                (translate (list (-(* ^^elbow-radius 2)) 0 0)))
+                   reference-coordinate-system ^^ubeam-pipe-coordinate-system
+                   )
+               (ubeam-lower-pipe-right :class 'open-cylinder-object
+                   diameter ^^diameter
+                   height ^^height
+                   orientation (list
+                                (rotate 90 '(0 1 0))
+                                (translate (list (/ ^height 2) 0 (-(/ ^height 2))))
+                                )
+                   
+                   reference-coordinate-system ^^ubeam-pipe-coordinate-system
+                   )
+               (ubeam-lower-pipe-left :class 'open-cylinder-object
+                   diameter ^^diameter
+                   height ^^height
+                   orientation (list
+                                (rotate 90 '(0 1 0))
+                                (translate (list (-(+ (* ^^elbow-radius 2) (/ ^height 2))) 0 (-(/ ^height 2))))
+                                )
+                   
+                   reference-coordinate-system ^^ubeam-pipe-coordinate-system
+                   )
+               )
+  
+                   
+                     
+  )
+
+
+(define-class pipe-support-class
+  :inherit-from (object)
+  :properties (
+               ;;Pipe properties
+              ;; pipe-height (default 10)
+
+               
+               outer-pipe-radius (default 10)
+               ubeam-pipe-gap (default 2.5)
+               ubeam-radius 0.0
+               ubeam-height 0.0
+
+               ;;Base properties
+               base-height (+ (* ^outer-pipe-radius 2) ^ubeam-pipe-gap)
+               base-depth (default 5)
+               base-width ^pipe-height
+
+               ;;Ubeam properties
+               ubeam-angle (default 180)
+               ubeam-thickness (default 0.5)
+               ubeam-outer-diameter (default 0.5)
+
+               ;;Ubeam pipe properties
+               pipe-diameter ^ubeam-outer-diameter
+               pipe-height (default 10)
+
+               ;;Lower ubeam properties
+               lower-ubeam-pipe-diameter ^pipe-diameter
+               lower-ubeam-pipe-height (default 3)
+               )
+
+  
+  :subobjects (
+               (support-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 0.0)
+                   )
+               (support-base-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- (/ ^^base-depth 2)))
+                   reference-coordinate-system ^^support-coordinate-system
+                    )
+               (support-base :class 'base-class
+
+                    reference-coordinate-system ^^support-base-coordinate-system
+                    )
+               ;;; (support-ubeam-coordinate-system :class 'coordinate-system-class
+;;;                    origin (list 0.0 0.0 50)
+;;;                    reference-coordinate-system ^^support-coordinate-system
+;;;                    )
+                (support-ubeam :class 'ubeam-class
+
+                   ;;reference-coordinate-system ^^support-ubeam-coordinate-system
+                    )
+                (support-ubeam2 :class 'ubeam-class
+                    orientation (list
+                                 (translate (list 0.0 5.0 0.0))
+                                 )
+
+                    )
+
+              
+               ;;; (ubeam :class 'ubeam-class
+;;;                    orientation (list
+;;;                                 (rotate 90 '(0 0 1)
+;;;                                         ))
+
+;;;                    reference-coordinate-system ^^support-ubeam-coordinate-system
+;;;                    )
+;;;                (pipe-coordinate-system :class 'coordinate-system-class
+;;;                    origin (list (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) 0.0 (+ (/ ^^pipe-height 2)(/ ^^base-depth 2)) )
+;;;                    reference-coordinate-system ^^support-base-coordinate-system
+;;;                    )
+;;;                (ubeam-pipe-right :class 'ubeam-pipe-class
+;;;                    orientation (list
+;;;                                 (rotate -180 '(1 0 0))
+;;;                                 )
+
+;;;                    reference-coordinate-system ^^pipe-coordinate-system
+;;;                    )
+;;;                (ubeam-pipe-left :class 'ubeam-pipe-class
+;;;                    orientation (list
+;;;                                 (rotate -180 '(1 0 0))
+;;;                                 (translate (list (-(* (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) 2)) 0.0 0.0))
+;;;                                 )
+
+;;;                    reference-coordinate-system ^^pipe-coordinate-system
+;;;                    )
+;;;                (ubeam-bottom-right :class 'ubeam-pipe-class
+;;;                    height ^^lower-ubeam-pipe-height
+;;;                    orientation (list
+;;;                                 (rotate 90 '(0 1 0))
+;;;                                 (translate (list (/ ^height 2) 0 0))
+;;;                                 )
+;;;                    )
+                                
+               )
+  )
+
+
+
+
+  
+               
