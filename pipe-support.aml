@@ -27,7 +27,6 @@
                )
   ) 
   
-)
 (define-class base-ibeam-class
   :inherit-from (object)
   :properties (
@@ -108,6 +107,57 @@
                                )
                    )
                )
+  )
+
+(define-class nut-class
+  :inherit-from (object)
+  :properties (
+               nut-size (default 12)
+               vertice-step (/ nut-size 1000)
+               point-list (children (the superior points))
+               )
+  :subobjects (
+
+               (point :class 'point-object
+                   coordinates '(0.0 0.0 0.0)
+                   display? t
+                )
+               
+               (points :class 'series-object
+                   series-prefix 'point
+
+                   class-expression 'point-object
+                   init-form '(
+                               orientation (list (translate '(0.02 0.0 0.0))
+                                                 (rotate (* ^index 60) '(0 0 1))
+                                                 )
+                               )
+                   quantity 6
+                   )
+
+               (polygon :class 'polygon-object
+                   vertices (get-polypoints (the points))
+                   ;;(weight (the top (:from table-object)) 0.1) 
+                   )
+               (nut :class 'extrusion-object
+                   swept-object ^^polygon
+                   vector '(0.0 0.0 10.0)
+                   distance 0.01
+                   )
+               )
+  )
+(define-method get-polypoints series-object ()
+  (let (
+        (pointlist '())
+        (pointlist (loop for i in ((the points)
+                                   :from (the superior)
+                                   :class 'nut-class
+                                   :eval '(the coordinates))
+                     collect i
+                     ))
+        )
+    pointlist
+    )
   )
 
 (define-class pipe-support-class
