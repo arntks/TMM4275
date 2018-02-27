@@ -87,7 +87,75 @@
                    
                      
   )
+;;;;;;;
+(define-class triangle-class
+  :inherit-from (polygon-object)
+  :properties (
+               vertices '(
+                          (0.0 0.0 0.0)
+                          (0.0 0.0 1.0)
+                          (1.0 0.0 0.0)
+                          )
+               dimension 2
+               
+               )
+  )
 
+(define-class triangle-extrusion-class
+  :inherit-from (extrusion-object)
+  :properties (
+               swept-object ^triangle1
+               vector '(0.0 1.0 0.0)
+               distance 10
+
+              (triangle1 :class 'triangle-class)
+              
+              )
+  )
+
+(define-class double-triangle-class
+  :inherit-from (circular-array-object)
+  :properties (
+               source-object ^triangle-source
+               diameter 5
+               quantity 2
+               ref-point '(0.0 0.0 0.0)
+               center '(0.0 0.0 0.0)
+               rotate-axis '(0.0 1.0 0.0)
+
+               (triangle-source :class 'triangle-extrusion-class
+                   )
+               )
+  )
+
+(define-class mirror-triangle-class
+  :inherit-from (mirror-object)
+  :properties (
+               source-object ^triangle-source
+               basis-vector '((0 1 0) (0 0 1))
+               point-on-mirror '(0 0 0)
+               
+               (triangle-source :class 'triangle-extrusion-class)
+               
+              
+  )
+  )
+
+(define-class test-class
+  :inherit-from (object)
+  :properties (
+               )
+  :subobjects (
+               (triangle-mirror :class 'mirror-triangle-class)
+               (triangle1 :class 'triangle-extrusion-class
+                   orientation (list
+                                (translate (list 5 0 0)
+                                           ))
+                   )
+               )
+  )
+               
+;;;;;;;;;
 
 (define-class pipe-support-class
   :inherit-from (object)
