@@ -1,6 +1,7 @@
 (in-package :aml)
 
 
+
 (define-class base-ibeam-class
   :inherit-from (object)
   :properties (
@@ -166,11 +167,12 @@
                (global-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 0.0)
                    )
-               (base-coordinate-system :class case(!base-type
-                                                   (concrete 'base-concrete-class)
-                                                   (ibeam 'ibeam-concrete-class)
-                                                   (t 'base-concrete-class)
-                                                   )
+               (base-coordinate-system :class 'base-ibeam-class
+                   ;;case(!base-type
+                     ;;                              (concrete 'base-concrete-class)
+                       ;;                            (ibeam 'ibeam-concrete-class)
+                         ;;                          (t 'base-concrete-class)
+                           ;;                        )
                    origin (list 0.0 0.0 (-(+ (* ^^outer-pipe-radius 0.69) ^^base-plate-depth)))
                    reference-coordinate-system ^^global-coordinate-system
                     )
