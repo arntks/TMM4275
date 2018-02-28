@@ -1,5 +1,70 @@
 (in-package :aml)
 
+
+(define-class base-ibeam-class
+  :inherit-from (object)
+  :properties (
+
+               pipe-diameter (* ^^outer-pipe-radius 4.41)
+
+               
+               reference-coordinate-system (default nil)
+               )
+  :subobjects (
+               (top :class 'box-object
+                   width (/ ^^pipe-diameter 4)
+                   base-width ^width
+                   depth (* 4 ^width)
+                   base-depth depth
+                   height (/ ^^pipe-diameter 32)
+                   base-height ^height
+                   orientation(list
+                               (rotate 90 '(1 0 0))
+                               (rotate 90 '(0 1 0))
+                               (rotate 90 '(0 0 1))
+                               (rotate 90 '(1 0 0))
+                               (translate (list 0 0 (+ (/ ^width 4) (* ^height 2.5))))
+                               
+                               )
+                   reference-coordinate-system ^^reference-coordinate-system
+                   
+                   )
+               (middle :class 'box-object
+                   width (/ ^^pipe-diameter 4)
+                   base-width ^width
+                   depth (* 4 ^width)
+                   base-depth depth
+                   height (/ ^^pipe-diameter 32)
+                   base-height ^height
+                   orientation(list
+                               (rotate 90 '(0 1 0))
+                               (translate (list 0 ^height 0))
+                               (rotate 90 '(0 0 1))
+                               (rotate 90 '(0 0 1))
+                               (translate (list 0 ^height 0))
+                               )
+                   reference-coordinate-system ^^reference-coordinate-system
+                   )
+                (bottom :class 'box-object
+                   width (/ ^^pipe-diameter 4)
+                   base-width ^width
+                   depth (* 4 ^width)
+                   base-depth depth
+                   height (/ ^^pipe-diameter 32)
+                   base-height ^height
+                   orientation(list
+                               (rotate 90 '(1 0 0))
+                               (rotate 90 '(0 1 0))
+                               (rotate 90 '(0 0 1))
+                               (rotate 90 '(1 0 0))
+                               (translate (list 0 0 (-(+ (/ ^width 4) (* ^height 2.5)))))
+                               )
+                   reference-coordinate-system ^^reference-coordinate-system
+                   )
+               )
+  )
+
+
 (define-class ubeam-class
   :inherit-from (object);;pipe-elbow-class
   :properties (
@@ -67,20 +132,20 @@
                
                ;;Pipe properties
               ;; pipe-height (default 10)
-               outer-pipe-radius (default 5)
+               outer-pipe-radius (default 1)
                ubeam-pipe-gap (* ^outer-pipe-radius 0.05)
                ubeam-radius 0.0
                ubeam-height 0.0
 
                ;;Base properties
-               base-height (* ^outer-pipe-radius 2)
+               base-height (^base-plate-height)
                base-depth (* ^outer-pipe-radius 0.5)
                base-width (* ^outer-pipe-radius 3)
 
                ;;Base-plate properties
-               base-plate-height (* ^outer-pipe-radius 2)
-               base-plate-depth (* ^outer-pipe-radius 0.1)
-               base-plate-width (* ^outer-pipe-radius 3) 
+               base-plate-height (* (+ ^outer-pipe-radius ^ubeam-thickness) 1.05)
+               base-plate-depth (* ^outer-pipe-radius 0.05)
+               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 2.2) 
                
 
                ;;Ubeam properties
@@ -90,11 +155,10 @@
 
                ;;Ubeam pipe properties
                pipe-diameter ^ubeam-outer-diameter
-               pipe-height (* ^outer-pipe-radius 2)
+               pipe-height (* ^outer-pipe-radius 1.4)
 
-               ;;Lower ubeam properties
-               lower-ubeam-pipe-diameter ^outer-pipe-radius
-               lower-ubeam-pipe-height (* ^outer-pipe-radius 0.35)
+               ;;Base-type
+               base-type (default base-ibeam-class)
                )
 
   
@@ -102,17 +166,18 @@
                (global-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 0.0)
                    )
-               (base-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 (-(+ (/ ^^base-depth 2) ^^base-plate-depth)))
+               (base-coordinate-system :class case(!base-type
+                                                   (concrete 'base-concrete-class)
+                                                   (ibeam 'ibeam-concrete-class)
+                                                   (t 'base-concrete-class)
+                                                   )
+                   origin (list 0.0 0.0 (-(+ (* ^^outer-pipe-radius 0.69) ^^base-plate-depth)))
                    reference-coordinate-system ^^global-coordinate-system
                     )
                (base-plate-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
                    )
-               (base :class 'box-object
-                   height ^^base-height
-                   depth ^^base-depth
-                   width ^^base-width
+               (base :class 'base-ibeam-class
                    reference-coordinate-system ^^base-coordinate-system
                    )
                (base-plate :class 'box-object
