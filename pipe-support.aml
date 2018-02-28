@@ -81,9 +81,7 @@
                                (rotate 90 '(0 0 1))
                                (rotate 90 '(1 0 0))
                                (translate (list 0 0 (-(+ (/ ^width 4) (* ^height 2.5)))))
-                               
                                )
-                   
                    )
                )
   )
@@ -109,52 +107,85 @@
                )
   )
 
-(define-class nut-class
-  :inherit-from (object)
+(define-class bolt-class
+  :inherit-from (union-object)
   :properties (
-               nut-size (default 12)
-               vertice-step (/ nut-size 1000)
-               point-list (children (the superior points))
+               nut-width (default 18);;size M12
+               point-list (get-nutpoints ^nut-width)
+               nut-height (/ ^nut-width 1.8)
+               display? t
+               object-list (list (the nut) (the shaft))
                )
   :subobjects (
-
-               (point :class 'point-object
-                   coordinates '(0.0 0.0 0.0)
-                   display? t
-                )
-               
-               (points :class 'series-object
-                   series-prefix 'point
-
-                   class-expression 'point-object
-                   init-form '(
-                               orientation (list (translate '(0.02 0.0 0.0))
-                                                 (rotate (* ^index 60) '(0 0 1))
-                                                 )
-                               )
-                   quantity 6
-                   )
-
-               (polygon :class 'polygon-object
-                   vertices (get-polypoints (the points))
-                   ;;(weight (the top (:from table-object)) 0.1) 
+               (nut-geometry :class 'polygon-object
+                   vertices ^^point-list
+                   dimension 2
+                   display? nil
                    )
                (nut :class 'extrusion-object
-                   swept-object ^^polygon
+                   swept-object ^^nut-geometry
                    vector '(0.0 0.0 10.0)
-                   distance 0.01
+                   distance ^^nut-height
+                   solid? t
+                   display? nil
+
+                   )
+               (shaft :class 'cylinder-object
+                   height (* ^^nut-height 8)
+                   diameter ^^nut-height
+                   orientation (list (translate (list 0 0 (/ ^height 2))))
+                   solid? t
+                   display? nil
                    )
                )
-  )
-(define-method get-polypoints series-object ()
-  (let (
-        (pointlist '())
-        (pointlist (loop for i in ((the points)
-                                   :from (the superior)
-                                   :class 'nut-class
-                                   :eval '(the coordinates))
-                     collect i
-                     ))
+)
+
+(define-class nut-class
+  :inherit-from (difference-object)
+  :properties (
+               nut-width (default 18);;size M12
+               point-list (get-nutpoints ^nut-width)
+               nut-height (/ ^nut-width 1.8)
+               display? t
+               object-list (list (the nut) (the hole))
+               )
+  :subobjects (
+               (nut-geometry :class 'polygon-object
+                   vertices ^^point-list
+                   dimension 2
+                   display? nil
+                   )
+               (nut :class 'extrusion-object
+                   swept-object ^^nut-geometry
+                   vector '(0.0 0.0 10.0)
+                   distance ^^nut-height
+                   solid? t
+                   display? nil
+
+                   )
+               (hole :class 'cylinder-object
+                   height ^^nut-height
+                   diameter ^^nut-height
+                   orientation (list (translate (list 0 0 (/ ^^nut-height 2))))
+                   solid? t
+                   display? nil
+                   )
+               )
+)
+
+(defun get-nutpoints (nut-width)
+  (let* (
+         (d (/ (* nut-width 1.11) 2))
+         (point1 (list (* d (cosd 30)) (* d (sind 30)) 0))
+         (point2 (list 0 d 0))
+         (point3 (list (* d (cosd 150)) (* d (sind 150)) 0))
+         (point4 (list (* d (cosd 210)) (* d (sind 210)) 0))
+         (point5 (list 0 (- 0 d) 0))
+         (point6 (list (* d (cosd 330)) (* d (sind 330)) 0))
+                                                                    
+         (pointlist (list point1 point2 point3 point4 point5 point6))
+        
+        
         )
     pointlist
     )
