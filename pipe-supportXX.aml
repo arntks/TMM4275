@@ -3,29 +3,29 @@
 (define-class bolt-class
   :inherit-from (union-object)
   :properties (
-               nut-width (default 18);;size M12
-               point-list (get-nutpoints ^nut-width)
-               nut-height (/ ^nut-width 1.8)
+               head-width (default 18);;size M12
+               point-list (get-nutpoints ^head-width)
+               head-height (/ ^head-width 1.8)
                display? t
-               object-list (list (the nut) (the shaft))
+               object-list (list (the head) (the shaft))
                )
   :subobjects (
-               (nut-geometry :class 'polygon-object
+               (head-geometry :class 'polygon-object
                    vertices ^^point-list
                    dimension 2
                    display? nil
                    )
-               (nut :class 'extrusion-object
-                   swept-object ^^nut-geometry
+               (head :class 'extrusion-object
+                   swept-object ^^head-geometry
                    vector '(0.0 0.0 10.0)
-                   distance ^^nut-height
+                   distance ^^head-height
                    solid? t
                    display? nil
 
                    )
                (shaft :class 'cylinder-object
-                   height (* ^^nut-height 8)
-                   diameter ^^nut-height
+                   height (* ^^head-height 8)
+                   diameter ^^head-height
                    orientation (list (translate (list 0 0 (/ ^height 2))))
                    solid? t
                    display? nil
@@ -38,10 +38,12 @@
 (define-class nut-class
   :inherit-from (difference-object)
   :properties (
+               ;;nut properties
                nut-width (default 0.05);;size M12
                point-list (get-nutpoints ^nut-width)
                nut-height (/ ^nut-width 1.8)
                display? t
+               
                object-list (list (the nut) (the hole))
                )
   :subobjects (
