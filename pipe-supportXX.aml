@@ -1,14 +1,153 @@
 (in-package :aml)
 
+(define-class bolt-class
+  :inherit-from (union-object)
+  :properties (
+               nut-width (default 18);;size M12
+               point-list (get-nutpoints ^nut-width)
+               nut-height (/ ^nut-width 1.8)
+               display? t
+               object-list (list (the nut) (the shaft))
+               )
+  :subobjects (
+               (nut-geometry :class 'polygon-object
+                   vertices ^^point-list
+                   dimension 2
+                   display? nil
+                   )
+               (nut :class 'extrusion-object
+                   swept-object ^^nut-geometry
+                   vector '(0.0 0.0 10.0)
+                   distance ^^nut-height
+                   solid? t
+                   display? nil
 
+                   )
+               (shaft :class 'cylinder-object
+                   height (* ^^nut-height 8)
+                   diameter ^^nut-height
+                   orientation (list (translate (list 0 0 (/ ^height 2))))
+                   solid? t
+                   display? nil
+                   )
+               )
+)
+
+
+
+(define-class nut-class
+  :inherit-from (difference-object)
+  :properties (
+               nut-width (default 0.05);;size M12
+               point-list (get-nutpoints ^nut-width)
+               nut-height (/ ^nut-width 1.8)
+               display? t
+               object-list (list (the nut) (the hole))
+               )
+  :subobjects (
+               (nut-geometry :class 'polygon-object
+                   vertices ^^point-list
+                   dimension 2
+                   display? nil
+                   )
+               (nut :class 'extrusion-object
+                   swept-object ^^nut-geometry
+                   vector '(0.0 0.0 10.0)
+                   distance ^^nut-height
+                   solid? t
+                   display? nil
+
+                   )
+               (hole :class 'cylinder-object
+                   height ^^nut-height
+                   diameter ^^nut-height
+                   orientation (list (translate (list 0 0 (/ ^^nut-height 2))))
+                   solid? t
+                   display? nil
+                   )
+               )
+)
+
+(defun get-nutpoints (nut-width)
+  (let* (
+         (d (/ (* nut-width 1.11) 2))
+         (point1 (list (* d (cosd 30)) (* d (sind 30)) 0))
+         (point2 (list 0 d 0))
+         (point3 (list (* d (cosd 150)) (* d (sind 150)) 0))
+         (point4 (list (* d (cosd 210)) (* d (sind 210)) 0))
+         (point5 (list 0 (- 0 d) 0))
+         (point6 (list (* d (cosd 330)) (* d (sind 330)) 0))
+                                                                    
+         (pointlist (list point1 point2 point3 point4 point5 point6))
+        
+        
+        )
+    pointlist
+    )
+  )
+
+(define-class set-nut-class
+  :inherit-from (circular-array-object)
+  :properties (
+               
+               reference-coordinate-system (default nil)
+
+               )
+  :subobjects (
+               (bolt1-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 0.0)
+                   )
+               (bolt2-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 0.0)
+                   )
+               (bolt3-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 0.0)
+                   )
+               (bolt4-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 0.0)
+                   )
+               (bolt1 :class bolt-class
+                   reference-coordinate-system ^^bolt1-coordinate-system
+               )
+               (bolt2 :class bolt-class
+               )
+               (bolt3 :class bolt-class
+               )
+               (bolt4 :class bolt-class
+               )
+
+               )
+  )
+
+(define-class base-concrete-class
+  :inherit-from (object)
+  :properties (
+              pipe-radius ^^outer-pipe-radius 
+              
+              reference-coordinate-system (default nil)
+
+              width ^^base-width
+              height ^^base-height 
+              depth ^^base-depth 
+               )
+  :subobjects (
+               (base :class 'box-object
+                   width ^^width 
+                   depth ^^depth
+                   height ^^height
+                   reference-coordinate-system ^^reference-coordinate-system
+                   orientation(list
+                               (translate (list 0 0(* ^^pipe-radius 0.44))))
+                   )
+               )
+
+  ) 
 
 (define-class base-ibeam-class
   :inherit-from (object)
   :properties (
 
                pipe-diameter (* ^^outer-pipe-radius 4.41)
-
-               
                reference-coordinate-system (default nil)
                )
   :subobjects (
@@ -120,6 +259,10 @@
                    height ^^pipe-height
                    reference-coordinate-system ^^ubeam-pipe-left-coordinate-system
                    )
+               
+
+                   
+                   
                )                   
   )
 
@@ -160,6 +303,11 @@
 
                ;;Base-type
                base-type (default base-ibeam-class)
+
+               ;;Base-concrete-ubeam
+
+               
+          
                )
 
   
@@ -167,21 +315,16 @@
                (global-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 0.0)
                    )
-               (base-coordinate-system :class 'base-ibeam-class
-                   ;;case(!base-type
-                     ;;                              (concrete 'base-concrete-class)
-                       ;;                            (ibeam 'ibeam-concrete-class)
-                         ;;                          (t 'base-concrete-class)
-                           ;;                        )
+               (base-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (-(+ (* ^^outer-pipe-radius 0.69) ^^base-plate-depth)))
                    reference-coordinate-system ^^global-coordinate-system
                     )
-               (base-plate-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
-                   )
                (base :class 'base-ibeam-class
                    reference-coordinate-system ^^base-coordinate-system
-                   )
+                    )
+               (base-plate-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
+                   ) 
                (base-plate :class 'box-object
                    height ^^base-plate-height
                    depth ^^base-plate-depth
@@ -202,6 +345,7 @@
                 (ubeam2 :class 'ubeam-class
                     reference-coordinate-system ^^ubeam2-coordinate-system
                     )
+                
                 )
   )
 
