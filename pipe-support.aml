@@ -110,29 +110,29 @@
 (define-class bolt-class
   :inherit-from (union-object)
   :properties (
-               nut-width (default 18);;size M12
-               point-list (get-nutpoints ^nut-width)
-               nut-height (/ ^nut-width 1.8)
+               head-width (default 18);;size M12
+               point-list (get-nutpoints ^head-width)
+               head-height (/ ^head-width 1.8)
                display? t
-               object-list (list (the nut) (the shaft))
+               object-list (list (the head) (the shaft))
                )
   :subobjects (
-               (nut-geometry :class 'polygon-object
+               (head-geometry :class 'polygon-object
                    vertices ^^point-list
                    dimension 2
                    display? nil
                    )
-               (nut :class 'extrusion-object
-                   swept-object ^^nut-geometry
+               (head :class 'extrusion-object
+                   swept-object ^^head-geometry
                    vector '(0.0 0.0 10.0)
-                   distance ^^nut-height
+                   distance ^^head-height
                    solid? t
                    display? nil
 
                    )
                (shaft :class 'cylinder-object
-                   height (* ^^nut-height 8)
-                   diameter ^^nut-height
+                   height (* ^^head-height 8)
+                   diameter ^^head-height
                    orientation (list (translate (list 0 0 (/ ^height 2))))
                    solid? t
                    display? nil
@@ -143,7 +143,7 @@
 (define-class nut-class
   :inherit-from (difference-object)
   :properties (
-               nut-width (default 18);;size M12
+               nut-width (default .018);;size M12
                point-list (get-nutpoints ^nut-width)
                nut-height (/ ^nut-width 1.8)
                display? t
@@ -191,6 +191,60 @@
     )
   )
 
+
+
+(define-class clamps-class
+  :inherit-from (object)
+  :properties(
+              pipe-diameter (default 0.5)
+              thickness (/ ^pipe-diameter 60)
+              point-list (list
+                          (list (- (- (/ ^pipe-diameter 4) ^thickness) 0.00001) 0.0 ^thickness)
+                          (list (/ ^pipe-diameter 100) 0.0 ^thickness)
+                          (list (/ ^pipe-diameter 100) 0.0 (/ ^pipe-diameter 4))
+                          (list (/ ^pipe-diameter 4) 0.0 (+ (/ ^pipe-diameter 4) (/ ^pipe-diameter 15)))
+                          (list (/ ^pipe-diameter 4) 0.0 0.0)
+                          )
+              )
+              
+  :subobjects(
+              (lines :class 'polyline-object
+                  vertices ^^point-list
+                  )
+              (frame :class 'extrusion-object
+                  swept-object ^lines
+                  vector '(0.0 10.0 0.0)
+                  distance (/ ^^pipe-diameter 6)
+                  solid? t
+                  )
+              (clamp :class 'surface-thickened-class
+                  source-object ^frame
+                  front-thickness ^^thickness
+                  back-thickness ^^thickness
+               
+               )
+              (mirror-clamp :class 'mirror-object
+                  source-object ^clamp
+                  basis-vector '((0 1 0) (0 0 1))
+                  point-on-mirror '(0 0 0)
+               
+               )
+              ;;         (pipe :class 'pipe-object
+              ;;           outer-diameter 0.5
+              ;;         height 5
+              ;;       thickness (* ^^thickness 4)
+              ;;     orientation (list
+              ;;                (rotate 90 '(1 0 0))
+              ;;              (translate (list 0 0 (/ ^^pipe-diameter 1.2999)))
+              ;;            )
+              ;;)
+              )
+  )
+
+
+
+
+
 (define-class pipe-support-class
   :inherit-from (object)
   :properties (
@@ -216,3 +270,4 @@
                  )
              )
   )
+
