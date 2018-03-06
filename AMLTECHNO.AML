@@ -92,23 +92,29 @@
 (define-class ubeam-class
   :inherit-from (object);;pipe-elbow-class
   :properties (
-               ;;pipe-elbow-properties
-               angle (default 180)                ;; ^^ubeam-angle
-               elbow-radius (default 5)  ;;(+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
-               thickness (default 0.5)               ;;^^ubeam-thickness
-               outer-diameter (default 0.5)                      ;;^^ubeam-outer-diameter
-
-               outer-pipe-radius (default 4.5)                           ;;^^outer-pipe-radius
-
-               ;;open-cylinder-properties
-               ubeam-pipe-gap    ;;^^ubeam-pipe-gap
-               pipe-height ;;^^pipe-height
-               base-depth ;;^^base-depth
-               diameter ;;^^pipe-diameter
-               
-               ;;lower-ubeam-height ^^lower-ubeam-pipe-height
-
+               ;;USER INPUTS;;
+               ;;Angle of ubeam
+               angle (default 180)
+               ;;Radius of the top of the ubeam
+               elbow-radius (default 5)
+               ;;Diameter of the pipe
+               outer-diameter (default 0.5)                      
+               ;;Radius of the pipe meant to be inside of the ubeam
+               outer-pipe-radius (default 4.5)
+               ;;Gap from the ubeam to the pipe
+               ubeam-pipe-gap
+               ;;Height of the bottom part of the ubeam
+               pipe-height
+               ;;The reference coordinate system; default set in (0.0 0.0 0.0) 
                reference-coordinate-system (default nil)
+
+
+               ;;BACKEND PROPERTIES;;
+               ;;Diameter for bottom pipes; should be the same as the diameter of the top-pipes
+               diameter ^outer-diameter
+               ;;Thickness equal to outer-diameter will give a solid pipe
+               thickness ^outer-diameter
+               
                
                )
   :subobjects (
