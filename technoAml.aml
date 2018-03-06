@@ -268,6 +268,116 @@
                )
   )
 
+(define-class bolt-class
+  :inherit-from (union-object)
+  :properties (
+               head-width (default 18);;size M12
+               point-list (get-nutpoints ^head-width)
+               head-height (/ ^head-width 1.8)
+               display? t
+               object-list (list (the head) (the shaft))
+               )
+  :subobjects (
+               (head-geometry :class 'polygon-object
+                   vertices ^^point-list
+                   dimension 2
+                   display? nil
+                   )
+               (head :class 'extrusion-object
+                   swept-object ^^head-geometry
+                   vector '(0.0 0.0 10.0)
+                   distance ^^head-height
+                   solid? t
+                   display? nil
+
+                   )
+               (shaft :class 'cylinder-object
+                   height (* ^^head-height 8)
+                   diameter ^^head-height
+                   orientation (list (translate (list 0 0 (/ ^height 2))))
+                   solid? t
+                   display? nil
+                   )
+               )
+)
+
+(define-class nut-class
+  :inherit-from (difference-object)
+  :properties (
+               nut-width (default .018);;size M12
+               point-list (get-nutpoints ^nut-width)
+               nut-height (/ ^nut-width 1.8)
+               display? t
+               object-list (list (the nut) (the hole))
+               )
+  :subobjects (
+               (nut-geometry :class 'polygon-object
+                   vertices ^^point-list
+                   dimension 2
+                   display? nil
+                   )
+               (nut :class 'extrusion-object
+                   swept-object ^^nut-geometry
+                   vector '(0.0 0.0 10.0)
+                   distance ^^nut-height
+                   solid? t
+                   display? nil
+
+                   )
+               (hole :class 'cylinder-object
+                   height ^^nut-height
+                   diameter ^^nut-height
+                   orientation (list (translate (list 0 0 (/ ^^nut-height 2))))
+                   solid? t
+                   display? nil
+                   )
+               )
+)
+
+(define-class bolt-nut-class
+  :inherit-from (object)
+  :properties(
+              nut-width 0.018
+              ;;distance between bolt head and the nut 
+              nut-bolt-distance (default 0.05)
+              )
+  :subobjects (
+               (bolt :class 'bolt-class
+                   head-width ^^nut-width
+                   orientation (list
+                                (rotate 180 '(0 1 0))
+                                (translate (list 0 0 ^head-height))
+                                )
+                   )
+               (nut :class 'nut-class
+                   nut-width ^^nut-width
+                   orientation (list
+
+                                (translate (list 0 0 (- (+ ^^nut-bolt-distance ^nut-height))))
+                                )
+                   )
+               
+               )
+  )
+
+(defun get-nutpoints (nut-width)
+  (let* (
+         (d (/ (* nut-width 1.11) 2))
+         (point1 (list (* d (cosd 30)) (* d (sind 30)) 0))
+         (point2 (list 0 d 0))
+         (point3 (list (* d (cosd 150)) (* d (sind 150)) 0))
+         (point4 (list (* d (cosd 210)) (* d (sind 210)) 0))
+         (point5 (list 0 (- 0 d) 0))
+         (point6 (list (* d (cosd 330)) (* d (sind 330)) 0))
+                                                                    
+         (pointlist (list point1 point2 point3 point4 point5 point6))
+        
+        
+        )
+    pointlist
+    )
+  )
+
 (define-class pipe-support-class
   :inherit-from (object)
   :properties (
@@ -283,7 +393,7 @@
                ubeam-height 0.0
 
                ;;Base properties
-               base-height (^base-plate-height)
+               base-height ^base-plate-height
                base-depth (* ^outer-pipe-radius 0.5)
                base-width (* ^outer-pipe-radius 3)
 
@@ -374,6 +484,7 @@
                    source-object ^^lower-pipe-support
                    )
 
+
 ;;;                 ;; Triangle
 ;;;                 (triangle :class 'extrusion-class
 ;;;                    swept-object ^triangle1
@@ -394,7 +505,15 @@
 ;;;                    source-object ^^triangle
 ;;;                    )
                 ;; Triangle End
+
+                (bolt1 :class 'bolt-nut-class
+                    bolt-nut-distance 0.05
+                    orientation (
+                                 (translate (list (/ ^^outer-pipe-radius 2) 0.1 0))
+                                 )
+                    )
                 )
+  
   )
 
 
