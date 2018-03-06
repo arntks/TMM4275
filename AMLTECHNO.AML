@@ -1,114 +1,33 @@
 (in-package :aml)
 
-(define-class base-concrete-class
-  :inherit-from (object)
-  :properties (
-              pipe-radius ^^outer-pipe-radius 
-              
-              reference-coordinate-system (default nil)
-
-              width ^^base-width
-              height ^^base-height 
-              depth ^^base-depth 
-               )
-  :subobjects (
-               (base :class 'box-object
-                   width ^^width 
-                   depth ^^depth
-                   height ^^height
-                   reference-coordinate-system ^^reference-coordinate-system
-                   orientation(list
-                               (translate (list 0 0(* ^^pipe-radius 0.44))))
-                   )
-               )
-
-  ) 
-
-(define-class base-ibeam-class
-  :inherit-from (object)
-  :properties (
-
-               base-size (default 5)
-               reference-coordinate-system (default nil)
-
-
-               pipe-diameter ^base-size
-               )
-  :subobjects (
-               (top :class 'box-object
-                   width (/ ^^pipe-diameter 4)
-                   base-width ^width
-                   depth (* 4 ^width)
-                   base-depth depth
-                   height (/ ^^pipe-diameter 32)
-                   base-height ^height
-                   orientation(list
-                               (rotate 90 '(1 0 0))
-                               (rotate 90 '(0 1 0))
-                               (rotate 90 '(0 0 1))
-                               (rotate 90 '(1 0 0))
-                               (translate (list 0 0 (+ (/ ^width 4) (* ^height 2.5))))
-                               
-                               )
-                   reference-coordinate-system ^^reference-coordinate-system
-                   
-                   )
-               (middle :class 'box-object
-                   width (/ ^^pipe-diameter 4)
-                   base-width ^width
-                   depth (* 4 ^width)
-                   base-depth depth
-                   height (/ ^^pipe-diameter 32)
-                   base-height ^height
-                   orientation(list
-                               (rotate 90 '(0 1 0))
-                               (translate (list 0 ^height 0))
-                               (rotate 90 '(0 0 1))
-                               (rotate 90 '(0 0 1))
-                               (translate (list 0 ^height 0))
-                               )
-                   reference-coordinate-system ^^reference-coordinate-system
-                   )
-                (bottom :class 'box-object
-                   width (/ ^^pipe-diameter 4)
-                   base-width ^width
-                   depth (* 4 ^width)
-                   base-depth depth
-                   height (/ ^^pipe-diameter 32)
-                   base-height ^height
-                   orientation(list
-                               (rotate 90 '(1 0 0))
-                               (rotate 90 '(0 1 0))
-                               (rotate 90 '(0 0 1))
-                               (rotate 90 '(1 0 0))
-                               (translate (list 0 0 (-(+ (/ ^width 4) (* ^height 2.5)))))
-                               )
-                   reference-coordinate-system ^^reference-coordinate-system
-                   )
-               )
-  )
 
 
 (define-class ubeam-class
   :inherit-from (object);;pipe-elbow-class
   :properties (
-               ;;pipe-elbow-properties
-               angle (default 180)                ;; ^^ubeam-angle
-               elbow-radius (default 5)  ;;(+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
-               thickness (default 0.5)               ;;^^ubeam-thickness
-               outer-diameter (default 0.5)                      ;;^^ubeam-outer-diameter
-
-               outer-pipe-radius (default 4.5)                           ;;^^outer-pipe-radius
-
-               ;;open-cylinder-properties
-               ubeam-pipe-gap    ;;^^ubeam-pipe-gap
-               pipe-height ;;^^pipe-height
-               base-depth ;;^^base-depth
-               diameter ;;^^pipe-diameter
-               
-               ;;lower-ubeam-height ^^lower-ubeam-pipe-height
-
+               ;;USER INPUTS;;
+               ;;Angle of ubeam
+               angle (default 180)
+               ;;Radius of the top of the ubeam
+               elbow-radius (default 5)
+               ;;Diameter of the pipe
+               outer-diameter (default 0.5)                      
+               ;;Radius of the pipe meant to be inside of the ubeam
+               outer-pipe-radius (default 4.5)
+               ;;Gap from the ubeam to the pipe
+               ubeam-pipe-gap
+               ;;Height of the bottom part of the ubeam
+               pipe-height
+               ;;The reference coordinate system; default set in (0.0 0.0 0.0) 
                reference-coordinate-system (default nil)
+
+
+               ;;BACKEND PROPERTIES;;
+               ;;Diameter for bottom pipes; should be the same as the diameter of the top-pipes
+               diameter ^outer-diameter
+               ;;Thickness equal to outer-diameter will give a solid pipe
+               thickness ^outer-diameter
+               
                
                )
   :subobjects (
@@ -348,16 +267,8 @@
                (global-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 0.0)
                    )
-               (base-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 (-(+ (* ^^outer-pipe-radius 0.69) ^^base-plate-depth)))
-                   reference-coordinate-system ^^global-coordinate-system
-                   )
                (base-plate-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
-                   )
-               (base :class 'base-ibeam-class
-                   base-size ^^base-size1
-                   reference-coordinate-system ^^base-coordinate-system
                    )
                (base-plate :class 'box-object
                    height ^^base-plate-height
@@ -517,16 +428,8 @@
                 (global-coordinate-system :class 'coordinate-system-class
                   origin (list 0.0 0.0 0.0)
                   )
-               (base-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 (-(+ (* ^^outer-pipe-radius 0.69) ^^base-plate-depth)))
-                   reference-coordinate-system ^^global-coordinate-system
-                    )
                (base-plate-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
-                   )
-               (base :class 'base-ibeam-class
-                   base-size ^^base-size1
-                   reference-coordinate-system ^^base-coordinate-system
                    )
                (base-plate :class 'box-object
                    height ^^base-plate-height
@@ -620,6 +523,7 @@
 ;;;               )
 ;;;   )
 
+
 (defun get-hexpoints (nut-width)
   (let* (
          (d (/ (* nut-width 1.11) 2))
@@ -637,3 +541,93 @@
     pointlist
     )
   )
+
+
+;;; (define-class base-concrete-class
+;;;   :inherit-from (object)
+;;;   :properties (
+;;;               pipe-radius ^^outer-pipe-radius 
+              
+;;;               reference-coordinate-system (default nil)
+
+;;;               width ^^base-width
+;;;               height ^^base-height 
+;;;               depth ^^base-depth 
+;;;                )
+;;;   :subobjects (
+;;;                (base :class 'box-object
+;;;                    width ^^width 
+;;;                    depth ^^depth
+;;;                    height ^^height
+;;;                    reference-coordinate-system ^^reference-coordinate-system
+;;;                    orientation(list
+;;;                                (translate (list 0 0(* ^^pipe-radius 0.44))))
+;;;                    )
+;;;                )
+
+;;;   ) 
+
+;;; (define-class base-ibeam-class
+;;;   :inherit-from (object)
+;;;   :properties (
+
+;;;                base-size (default 5)
+;;;                reference-coordinate-system (default nil)
+
+
+;;;                pipe-diameter ^base-size
+;;;                )
+;;;   :subobjects (
+;;;                (top :class 'box-object
+;;;                    width (/ ^^pipe-diameter 4)
+;;;                    base-width ^width
+;;;                    depth (* 4 ^width)
+;;;                    base-depth depth
+;;;                    height (/ ^^pipe-diameter 32)
+;;;                    base-height ^height
+;;;                    orientation(list
+;;;                                (rotate 90 '(1 0 0))
+;;;                                (rotate 90 '(0 1 0))
+;;;                                (rotate 90 '(0 0 1))
+;;;                                (rotate 90 '(1 0 0))
+;;;                                (translate (list 0 0 (+ (/ ^width 4) (* ^height 2.5))))
+                               
+;;;                                )
+;;;                    reference-coordinate-system ^^reference-coordinate-system
+                   
+;;;                    )
+;;;                (middle :class 'box-object
+;;;                    width (/ ^^pipe-diameter 4)
+;;;                    base-width ^width
+;;;                    depth (* 4 ^width)
+;;;                    base-depth depth
+;;;                    height (/ ^^pipe-diameter 32)
+;;;                    base-height ^height
+;;;                    orientation(list
+;;;                                (rotate 90 '(0 1 0))
+;;;                                (translate (list 0 ^height 0))
+;;;                                (rotate 90 '(0 0 1))
+;;;                                (rotate 90 '(0 0 1))
+;;;                                (translate (list 0 ^height 0))
+;;;                                )
+;;;                    reference-coordinate-system ^^reference-coordinate-system
+;;;                    )
+;;;                 (bottom :class 'box-object
+;;;                    width (/ ^^pipe-diameter 4)
+;;;                    base-width ^width
+;;;                    depth (* 4 ^width)
+;;;                    base-depth depth
+;;;                    height (/ ^^pipe-diameter 32)
+;;;                    base-height ^height
+;;;                    orientation(list
+;;;                                (rotate 90 '(1 0 0))
+;;;                                (rotate 90 '(0 1 0))
+;;;                                (rotate 90 '(0 0 1))
+;;;                                (rotate 90 '(1 0 0))
+;;;                                (translate (list 0 0 (-(+ (/ ^width 4) (* ^height 2.5)))))
+;;;                                )
+;;;                    reference-coordinate-system ^^reference-coordinate-system
+;;;                    )
+;;;                )
+;;;   )
+
