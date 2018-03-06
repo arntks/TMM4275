@@ -193,13 +193,18 @@
 (define-class pipe-support-pipe-class
   :inherit-from (object)
   :properties (
-               ;;Height Y
-               ;;Width X
-               ;;Depth Z
+               ;;Width: X Height: Y Depth: Z
                
-               ;;Pipe properties
-              ;; pipe-height (default 10)
+               ;;USER INPUTS;;
+               ;;Pipe radius
                outer-pipe-radius (default 5)
+               ;;Clearance between pipe and base-plate
+               clearance (default 0)
+
+
+               
+               ;;BACKEND PROPERTIES;;
+               ;;Ubeam
                ubeam-pipe-gap (* ^outer-pipe-radius 0.05)
                ubeam-radius 0.0
                ubeam-height 0.0
@@ -236,8 +241,6 @@
                    origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
                    reference-coordinate-system ^^global-coordinate-system
                    )
-               
-               
                (ubeam1 :class 'ubeam-class
                    elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
                    thickness ^^ubeam-thickness
