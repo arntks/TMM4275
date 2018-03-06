@@ -382,7 +382,94 @@
 
                 )
   )
+(define-class bolt-class
+  :inherit-from (union-object)
+  :properties (
+               nut-hole-diameter (default 0.006)
+               bolt-height (default 0.048)
+               nut-height (* ^nut-hole-diameter 0.9)
+               display? t
+               object-list (list (the head) (the shaft))
+               )
+  :subobjects (
+               (head :class 'nut-class
+                   nut-hole-diamater ^^nut-hole-diameter
+                   display? nil
+                   )
+               (shaft :class 'cylinder-object
+                   height ^^bolt-height
+                   diameter ^^nut-hole-diameter
+                   orientation (list
+                               (translate (list 0 0 (- (+ (/ ^^bolt-height 2) (/ ^^nut-height 2)))))
+                               )
+                   solid? t
+                   display? nil
+                   )
+               )
+)
 
+(define-class nut-class
+  :inherit-from (difference-object)
+  :properties (
+               
+               nut-hole-diameter (default .006)
+               nut-hex-width (* ^nut-hole-diameter 1.8)
+               ;;Gets the points for the hex geometry of a bolt nut
+               point-list (get-hexpoints ^nut-hex-width)
+               nut-height (* ^nut-hole-diameter 0.9)
+               display? t
+               ;;Removes the the hole from the solid hex geometry, creating a nut
+               object-list (list (the nut) (the hole))
+               )
+  :subobjects (
+               (nut-geometry :class 'polygon-object
+                   vertices ^^point-list
+                   dimension 2
+                   display? nil
+                   )
+               (nut :class 'extrusion-object
+                   swept-object ^^nut-geometry
+                   vector '(0.0 0.0 10.0)
+                   distance ^^nut-height
+                   solid? t
+                   display? nil
+
+                   )
+               (hole :class 'cylinder-object
+                   height ^^nut-height
+                   diameter ^^nut-height
+                   orientation (list (translate (list 0 0 (/ ^^nut-height 2))))
+                   solid? t
+                   display? nil
+                   )
+               )
+)
+
+(define-class bolt-nut-class
+  :inherit-from (object)
+  :properties(
+              nut-hole-diameter (default 0.006)
+              ;;distance between bolt head and the nut 
+              nut-bolt-distance (default 0.05)
+              )
+  :subobjects (
+               (bolt :class 'bolt-class
+                   head-width ^^nut-hex-width
+                   orientation (list
+                                (rotate 180 '(0 1 0))
+                                (translate (list 0 0 ^head-height))
+                                )
+                   )
+               (nut :class 'nut-class
+                   nut-hole-diameter ^^nut-hole-diameter
+                   orientation (list
+
+                                (translate (list 0 0 (- (+ ^^nut-bolt-distance ^nut-height))))
+                                )
+                   )
+               
+               )
+  )
 
 (define-class pipe-support-flat-class
   :inherit-from (object)
@@ -533,15 +620,20 @@
 ;;;               )
 ;;;   )
 
-
-
-
-
-              
-
-
-
-
-
-  
-               
+(defun get-hexpoints (nut-width)
+  (let* (
+         (d (/ (* nut-width 1.11) 2))
+         (point1 (list (* d (cosd 30)) (* d (sind 30)) 0))
+         (point2 (list 0 d 0))
+         (point3 (list (* d (cosd 150)) (* d (sind 150)) 0))
+         (point4 (list (* d (cosd 210)) (* d (sind 210)) 0))
+         (point5 (list 0 (- 0 d) 0))
+         (point6 (list (* d (cosd 330)) (* d (sind 330)) 0))
+                                                                    
+         (pointlist (list point1 point2 point3 point4 point5 point6))
+        
+        
+        )
+    pointlist
+    )
+  )
