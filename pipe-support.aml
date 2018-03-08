@@ -271,23 +271,14 @@
                                (translate (list 0 0 ^^pipe-center-to-top-baseplate))
                                )
                   )
-              (bolt-nut :class 'bolt-nut-class
+              (fastning :class 'bolt-nut-class
                   nut-hole-diameter ^^bolt-hole-width
                   nut-bolt-distance ^^bolt-to-nut-distance
-                  orientation (list
-                               (rotate 90 '(1 1 1))
-                               (translate (list 0 0 ^^pipe-center-to-top-baseplate))
+                  ;;Orientation doesn't work
+                  orientation (list 
+                               (rotate 90 '(1 1 0))
                                )
                   )
-;;;                   orientation (list
-;;;                                (rotate 90.0 '(0.0 1.0 0.0))
-;;;                                (translate (list
-;;;                                            (- (* ^^pipe-radius 0.8))
-;;;                                            (/ ^^shim-width 2)
-;;;                                            (/ ^^shim-width 2)
-;;;                                            ))
-;;;                                )
-;;;                   )
               )
   )
 
