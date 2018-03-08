@@ -110,30 +110,24 @@
 (define-class bolt-class
   :inherit-from (union-object)
   :properties (
-               head-width (default 18);;size M12
-               point-list (get-nutpoints ^head-width)
-               head-height (/ ^head-width 1.8)
+               nut-hole-diameter (default 0.006)
+               head-height (default 0.048)
+               bolt-height (default (* ^head-height 8))
+               nut-height (* ^nut-hole-diameter 0.9)
                display? t
                object-list (list (the head) (the shaft))
                )
   :subobjects (
-               (head-geometry :class 'polygon-object
-                   vertices ^^point-list
-                   dimension 2
+               (head :class 'nut-class
+                   nut-hole-diamater ^^nut-hole-diameter
                    display? nil
-                   )
-               (head :class 'extrusion-object
-                   swept-object ^^head-geometry
-                   vector '(0.0 0.0 10.0)
-                   distance ^^head-height
-                   solid? t
-                   display? nil
-
                    )
                (shaft :class 'cylinder-object
-                   height (* ^^head-height 8)
-                   diameter ^^head-height
-                   orientation (list (translate (list 0 0 (/ ^height 2))))
+                   height ^^bolt-height
+                   diameter ^^nut-hole-diameter
+                   orientation (list
+                               (translate (list 0 0 (- (- (/ ^^bolt-height 2) ^^head-height))))
+                               )
                    solid? t
                    display? nil
                    )
@@ -143,10 +137,14 @@
 (define-class nut-class
   :inherit-from (difference-object)
   :properties (
-               nut-width (default .018);;size M12
-               point-list (get-nutpoints ^nut-width)
-               nut-height (/ ^nut-width 1.8)
+               
+               nut-hole-diameter (default .006)
+               nut-hex-width (* ^nut-hole-diameter 1.8)
+               ;;Gets the points for the hex geometry of a bolt nut
+               point-list (get-hexpoints ^nut-hex-width)
+               nut-height (* ^nut-hole-diameter 0.9)
                display? t
+               ;;Removes the the hole from the solid hex geometry, creating a nut
                object-list (list (the nut) (the hole))
                )
   :subobjects (
@@ -173,7 +171,38 @@
                )
 )
 
-(defun get-nutpoints (nut-width)
+(define-class bolt-nut-class
+  :inherit-from (object)
+  :properties(
+              nut-hole-diameter (default 0.006)
+              nut-height (* ^nut-hole-diameter 0.9)
+              bolt-height (default (* ^nut-height 8))
+              head-height ^nut-height
+              ;;distance between bolt head and the nut 
+              nut-bolt-distance (default (* (/ ^bolt-height 3) 2))
+              )
+  :subobjects (
+               (bolt :class 'bolt-class
+                   nut-hole-diameter ^^nut-hole-diameter
+                   bolt-height (+ ^^nut-bolt-distance (* ^^nut-height 3))
+                   orientation (list
+                                (rotate 180 '(0 1 0))
+                                )
+                   )
+               (nut :class 'nut-class
+                   nut-hole-diameter ^^nut-hole-diameter
+                   orientation (list
+
+                                (translate (list 0 0 ^^nut-bolt-distance))
+                                )
+                   )
+               
+               )
+  )
+
+
+
+(defun get-hexpoints (nut-width)
   (let* (
          (d (/ (* nut-width 1.11) 2))
          (point1 (list (* d (cosd 30)) (* d (sind 30)) 0))
@@ -193,51 +222,72 @@
 
 
 
-(define-class clamps-class
+(define-class shims-class
   :inherit-from (object)
   :properties(
               pipe-diameter (default 0.5)
-              thickness (/ ^pipe-diameter 60)
+              thickness (default (/ ^pipe-diameter 40))
+              pipe-radius (/ ^pipe-diameter 2)
+              pipe-center-to-top-baseplate (default (/ (* ^pipe-radius 3) 2))
+              point4z (* (* ^pipe-radius 0.6) (sind 30))
               point-list (list
-                          (list (- (- (/ ^pipe-diameter 4) ^thickness) 0.00001) 0.0 ^thickness)
-                          (list (/ ^pipe-diameter 100) 0.0 ^thickness)
-                          (list (/ ^pipe-diameter 100) 0.0 (/ ^pipe-diameter 4))
-                          (list (/ ^pipe-diameter 4) 0.0 (+ (/ ^pipe-diameter 4) (/ ^pipe-diameter 15)))
-                          (list (/ ^pipe-diameter 4) 0.0 0.0)
+                          (list (- (* ^pipe-radius 0.8) (+ ^thickness 0.00001)) 0.0 0.0)
+                          (list (* ^pipe-radius 0.2) 0.0 0.0)
+                          (list (* ^pipe-radius 0.2) 0.0 (- ^pipe-center-to-top-baseplate ^pipe-radius))
+                          (list (* ^pipe-radius 0.8) 0.0 (+ (- ^pipe-center-to-top-baseplate ^pipe-radius) ^point4z))
+                          (list (* ^pipe-radius 0.8) 0.0 0.0)
                           )
-              )
-              
+              bolt-hole-width (default (* ^thickness 0.6))
+              bolt-to-nut-distance (default (* 2 (* ^pipe-radius 0.8)))
+              shim-width (/ ^pipe-diameter 6)
+              )              
   :subobjects(
+
               (lines :class 'polyline-object
                   vertices ^^point-list
                   )
               (frame :class 'extrusion-object
                   swept-object ^lines
                   vector '(0.0 10.0 0.0)
-                  distance (/ ^^pipe-diameter 6)
+                  distance ^^shim-width
                   solid? t
                   )
               (clamp :class 'surface-thickened-class
                   source-object ^frame
-                  front-thickness ^^thickness
                   back-thickness ^^thickness
-               
-               )
+                  )
               (mirror-clamp :class 'mirror-object
                   source-object ^clamp
                   basis-vector '((0 1 0) (0 0 1))
                   point-on-mirror '(0 0 0)
                
                )
-              ;;         (pipe :class 'pipe-object
-              ;;           outer-diameter 0.5
-              ;;         height 5
-              ;;       thickness (* ^^thickness 4)
-              ;;     orientation (list
-              ;;                (rotate 90 '(1 0 0))
-              ;;              (translate (list 0 0 (/ ^^pipe-diameter 1.2999)))
-              ;;            )
-              ;;)
+              (pipe :class 'pipe-object
+                  outer-diameter 0.5
+                  height 5
+                  thickness (* ^^thickness 3)
+                  orientation (list
+                               (rotate 90 '(1 0 0))
+                               (translate (list 0 0 ^^pipe-center-to-top-baseplate))
+                               )
+                  )
+              (bolt-nut :class 'bolt-nut-class
+                  nut-hole-diameter ^^bolt-hole-width
+                  nut-bolt-distance ^^bolt-to-nut-distance
+                  orientation (list
+                               (rotate 90 '(1 1 1))
+                               (translate (list 0 0 ^^pipe-center-to-top-baseplate))
+                               )
+                  )
+;;;                   orientation (list
+;;;                                (rotate 90.0 '(0.0 1.0 0.0))
+;;;                                (translate (list
+;;;                                            (- (* ^^pipe-radius 0.8))
+;;;                                            (/ ^^shim-width 2)
+;;;                                            (/ ^^shim-width 2)
+;;;                                            ))
+;;;                                )
+;;;                   )
               )
   )
 
