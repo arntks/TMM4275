@@ -178,21 +178,7 @@
                )
   )
 
-(define-class extrusion-class
-  :inherit-from (extrusion-object)
-  :properties (
-               base-height (default 5)
-               vector '(0.0 1.0 0.0)
-               distance (/ (* ^^base-plate-height 1.6) 2)
-              )
-  )
-(define-class mirror-class
-  :inherit-from (mirror-object)
-  :properties (
-               basis-vector '((0 1 0) (0 0 1))
-               point-on-mirror '(0 0 0)
-               )
-  )
+
 (define-class flat-ubeam-class
   :inherit-from (object)
   :properties (
@@ -777,7 +763,7 @@
               (bolts-nuts :class 'assembly-object
                   object-list(list (the bolt1) (the bolt2) (the bolt3) (the nut1) (the nut2) (the nut3))
                   )
-              (mirrored-fastning :class 'mirror-class
+              (mirrored-fastning :class 'mirror-object
                   source-object ^bolts-nuts
                   basis-vector '((0 1 0) (0 0 1))
                   point-on-mirror '(0 0 0)
