@@ -1,5 +1,14 @@
 (in-package :aml)
 
+(define-class global-coordinate-system
+  :inherit-from (coordinate-system-class) 
+  :properties (
+               origin '(0 0 0)
+               display? t
+               )
+  )
+  
+
 (define-class base-concrete-class
   :inherit-from (object)
   :properties (
@@ -387,7 +396,6 @@
 (define-class nut-class
   :inherit-from (difference-object)
   :properties (
-               
                nut-hole-diameter (default .006)
                nut-hex-width (* ^nut-hole-diameter 1.8)
                ;;Gets the points for the hex geometry of a bolt nut
@@ -411,10 +419,14 @@
                    display? nil
 
                    )
-               (hole :class 'cylinder-object
-                   height ^^nut-height
-                   diameter ^^nut-height
-                   orientation (list (translate (list 0 0 (/ ^^nut-height 2))))
+               (hole-geometry :class 'disc-object
+                   diameter ^^nut-hole-diameter
+                   display? nil
+                   )
+               (hole :class 'extrusion-object
+                   swept-object ^^hole-geometry
+                   vector '(0.0 0.0 10.0)
+                   distance ^^nut-height
                    solid? t
                    display? nil
                    )
@@ -425,23 +437,34 @@
   :inherit-from (union-object)
   :properties (
                nut-hole-diameter (default 0.006)
-               height (default 0.05)
+               bolt-height (default 0.05)
                head-height (default 0.048)
                nut-height (* ^nut-hole-diameter 0.9)
                display? t
                object-list (list (the head) (the shaft))
+               reference-coordinate-system ^^bolt-coordinate-system
+                             
                )
   :subobjects (
+               (bolt-coordinate-system :class 'coordinate-system-class
+                   origin '(0 0 0)
+                   display? nil
+                   )
                (head :class 'nut-class
                    nut-hole-diamater ^^nut-hole-diameter
                    display? nil
+                   reference-coordinate-system ^^bolt-coordinate-system
+                   )
+               (shaft-coordinate-system :class 'coordinate-system-class                   
+                   origin (list
+                           0 0 (- (- (/ ^^bolt-height 2) ^^nut-height))
+                           )
+                   display? nil
                    )
                (shaft :class 'cylinder-object
-                   height ^^height
+                   height ^^bolt-height
                    diameter ^^nut-hole-diameter
-                   orientation (list
-                               (translate (list 0 0 (- (- (/ ^^height 2) ^^nut-height))))
-                               )
+                   reference-coordinate-system ^^shaft-coordinate-system
                    solid? t
                    display? nil
                    )
@@ -455,34 +478,46 @@
               nut-height (* ^nut-hole-diameter 0.9)
               head-height ^nut-height
               ;;distance between bolt head and the nut 
-              nut-bolt-distance (default (* (/ ^bolt-height 3) 2))
+              nut-bolt-distance (default (* ^nut-height 10))
+              reference-coordinate-system ^^bolt-coordinate-system
               )
   :subobjects (
+               (bolt-coordinate-system :class 'coordinate-system-class
+                   origin '(0 0 0)
+                   display? nil
+                   )
                (bolt :class 'bolt-class
                    nut-hole-diameter ^^nut-hole-diameter
-                   height (+ ^^nut-bolt-distance (* ^^nut-height 2))
+                   bolt-height (+ ^^nut-bolt-distance (* ^^nut-height 4))
                    orientation (list
                                 (rotate 180 '(0 1 0))
                                 )
+                   reference-coordinate-system ^^bolt-coordinate-system
+                   )
+               (nut-coordinate-system :class 'coordinate-system-class
+                   origin (list
+                           0
+                           0
+                           ^^nut-bolt-distance
+                           )
+                   display? nil
                    )
                (nut :class 'nut-class
                    nut-hole-diameter ^^nut-hole-diameter
-                   orientation (list
-
-                                (translate (list 0 0 ^^nut-bolt-distance))
-                                )
+                   reference-coordinate-system ^^nut-coordinate-system
                    )
-               
                )
   )
 (define-class shims-class
   :inherit-from (object)
-  :properties(
+  :properties(;;Muligens ikke bruke reference før i sluttklassen???
               pipe-diameter (default 0.5)
               thickness (default (/ ^pipe-diameter 40))
               pipe-radius (/ ^pipe-diameter 2)
+              contact-shims-pipe-angle (default 60)
+              angle (/ ^contact-shims-pipe-angle 2)
               pipe-center-to-top-baseplate (default (/ (* ^pipe-radius 3) 2))
-              point4z (* (* ^pipe-radius 0.6) (sind 30))
+              point4z (* (* ^pipe-radius 0.6) (sind ^angle))
               point-list (list
                           (list (- (* ^pipe-radius 0.8) (+ ^thickness 0.00001)) 0.0 0.0)
                           (list (* ^pipe-radius 0.2) 0.0 0.0)
@@ -491,11 +526,15 @@
                           (list (* ^pipe-radius 0.8) 0.0 0.0)
                           )
               bolt-hole-width (default (* ^thickness 0.6))
+              bolt-height (* ^^pipe-radius 1.8)
               bolt-to-nut-distance (default (* 2 (* ^pipe-radius 0.8)))
               shim-width (/ ^pipe-diameter 6)
               )              
   :subobjects(
-
+              (local-coordinate-system :class 'coordinate-system-class
+                  origin '(0 0 0)
+                  display? nil
+                  )
               (lines :class 'polyline-object
                   vertices ^^point-list
                   )
@@ -505,31 +544,73 @@
                   distance ^^shim-width
                   solid? t
                   )
-              (clamp :class 'surface-thickened-class
+              (right-shim :class 'surface-thickened-class
                   source-object ^frame
                   back-thickness ^^thickness
                   )
-              (mirror-clamp :class 'mirror-object
-                  source-object ^clamp
+              (left-shim :class 'mirror-object
+                  source-object ^right-shim
                   basis-vector '((0 1 0) (0 0 1))
                   point-on-mirror '(0 0 0)
-               
                )
-              (pipe :class 'pipe-object
-                  outer-diameter 0.5
-                  height 5
-                  thickness (* ^^thickness 3)
-                  orientation (list
-                               (rotate 90 '(1 0 0))
-                               (translate (list 0 0 ^^pipe-center-to-top-baseplate))
-                               )
+              (shims-coordinate-system :class 'coordinate-system-class
+                  orgin (list
+                         0
+                         0
+                         0
+                         )
+                  reference-coordinate-system ^^local-coordinate-system
+                  display? nil
                   )
-              (fastning :class 'bolt-nut-class
+              (shim :class 'assembly-object
+                  object-list(list (the right-shim) (the left-shim))
+                  reference-coordinate-system ^^shims-coordinate-system
+                  )
+;;;               (pipe-coordinate-system :class 'coordinate-system-class
+;;;                   origin (list
+;;;                           0
+;;;                           0
+;;;                           ^^pipe-center-to-top-baseplate
+;;;                           )
+;;;                   reference-coordinate-system ^^local-coordinate-system
+;;;                   display? nil
+;;;                   )
+;;;               (pipe :class 'pipe-object
+;;;                   outer-diameter 0.5
+;;;                   height 5
+;;;                   thickness (* ^^thickness 3)
+;;;                   orientation (list
+;;;                                (rotate 90 '(1 0 0))
+;;;                                )
+;;;                   reference-coordinate-system ^^pipe-coordinate-system
+;;;                   )
+              (bolt-coordinate-system :class 'coordinate-system-class
+                  origin (list
+                          (- (* ^^pipe-radius 0.8))
+                          (/ ^^shim-width 2)
+                          (/ (- ^^pipe-center-to-top-baseplate ^^pipe-radius) 2)
+                          )
+                  reference-coordinate-system ^^local-coordinate-system
+                  display? nil
+                  )
+              (bolt :class 'bolt-class
                   nut-hole-diameter ^^bolt-hole-width
-                  nut-bolt-distance ^^bolt-to-nut-distance
-                  ;;Orientation doesn't work
+                  bolt-height ^^bolt-height
                   orientation (list 
-                               (rotate 90 '(1 1 0))
+                               (rotate 90 '(0 1 0))
+                               (rotate 180 '(0 0 1))
+                               )
+                  reference-coordinate-system ^^bolt-coordinate-system
+                  )
+              (nut :class 'nut-class
+                  nut-hole-diameter ^^thickness
+                  orientation (list 
+                               (rotate 90 '(0 1 0))
+                               (translate (list
+                                           (* ^^pipe-radius 0.8)
+                                           (/ ^^shim-width 2)
+                                           (/ (- ^^pipe-center-to-top-baseplate ^^pipe-radius) 2)
+                                           ))
                                )
                   )
               )
@@ -542,11 +623,18 @@
                pipe-radius (/ ^pipe-diameter 2)
                start-angle-arc 4
                start-angle-flip 3
-               tilt-angle (default 0)
                thickness (/ ^pipe-radius 15)
-               
+               flip-thickness (* ^thickness 3)
+               clamp-width (default (/ ^pipe-radius 0.5))
+               nut-bolt-distance (+ (* (* ^pipe-radius (sind 3)) 2) (* ^flip-thickness 2))
+               reference-coordinate-system ^global-reference-system
+               flip-lenght (/ ^pipe-radius 4)
                )
   :subobjects (
+               (local-clamp-coordinate-system :class 'coordinate-system-class
+                   origin '(0 0 0)
+                   display? nil
+                   )
                (flip-wire :class 'line-object
                    point1x (* ^^pipe-radius (cosd ^^start-angle-flip))
                    point2x (+ (* ^^pipe-radius (cosd ^^start-angle-flip)) (/ ^^pipe-radius 4))
@@ -559,13 +647,13 @@
                (flip-surface :class 'extrusion-object
                    swept-object ^flip-wire
                    vector '(0.0 10.0 0.0)
-                   distance ^^pipe-radius
+                   distance ^^clamp-width
                    solid? t
                    )
                (flip :class 'extrusion-object
                    swept-object ^flip-surface
                    vector '(0.0 0.0 10.0)
-                   distance ^^thickness
+                   distance ^^flip-thickness
                    solid? t
                    )
                (arc-wire :class 'arc-object
@@ -579,34 +667,111 @@
                (arc-surface :class 'extrusion-object
                    swept-object ^arc-wire
                    vector '(0.0 10.0 0.0)
-                   distance ^^pipe-radius
+                   distance ^^clamp-width
                    solid? t
                    )
                (arc :class 'surface-thickened-class
                    source-object ^arc-surface
                    back-thickness ^^thickness
                    )
-               (quart-clamp :class 'union-object
+               (quart-clamp-right :class 'union-object
                    object-list(list (the flip) (the arc))
                    )
-               (top-clamp :class 'mirror-object
-                  source-object ^quart-clamp
+               (quart-clamp-left :class 'mirror-object
+                  source-object ^quart-clamp-right
                   basis-vector '((0 1 0) (0 0 1))
                   point-on-mirror '(0 0 0)
+                  display? nil
                
                )
-              (clamp :class 'mirror-object
-                  source-object ^top-clamp
+              (quart-clamp-left-down :class 'mirror-object
+                  source-object ^quart-clamp-left
                   basis-vector '((1 0 0) (0 1 0))
                   point-on-mirror '(0 0 0)
-               
+                  display? nil
                )
-              (quart-clamp-last :class 'mirror-object
-                  source-object ^quart-clamp
+              (quart-clamp-right-down :class 'mirror-object
+                  source-object ^quart-clamp-right
                   basis-vector '((1 0 0) (0 1 0))
                   point-on-mirror '(0 0 0)
-               
+                  display? nil
                   )
+              (bolt-coordinate-system :class 'coordinate-system-class
+                  origin(list 
+                         (+ ^^pipe-radius (/ ^^flip-lenght 2))
+                         0
+                         (+ (* ^^pipe-radius (sind 3)) ^flip-thickness)
+                         )
+                  display? nil
+                  )
+              (bolt1 :class 'bolt-class
+                  nut-hole-diameter (* ^^thickness 0.7)
+                  bolt-height (+ ^^nut-bolt-distance ^^flip-thickness)
+                  orientation (list
+                               ;;(rotate 180 '(0 1 0))
+                               (translate (list 0 (/ (* ^^clamp-width 1) 4) 0))
+                               )
+                  reference-coordinate-system ^^bolt-coordinate-system
+                  )
+              (bolt2 :class 'bolt-class
+                  nut-hole-diameter (* ^^thickness 0.7)
+                  bolt-height (+ ^^nut-bolt-distance ^^flip-thickness)
+                  orientation (list
+                               ;;(rotate 180 '(0 1 0))
+                               (translate (list 0 (/ (* ^^clamp-width 2) 4) 0))
+                               )
+                  reference-coordinate-system ^^bolt-coordinate-system
+                  )
+              (bolt3 :class 'bolt-class
+                  nut-hole-diameter (* ^^thickness 0.7)
+                  bolt-height (+ ^^nut-bolt-distance ^^flip-thickness)
+                  orientation (list
+                               ;;(rotate 180 '(0 1 0))
+                               (translate (list 0 (/ (* ^^clamp-width 3) 4) 0))
+                               )
+                  reference-coordinate-system ^^bolt-coordinate-system
+                  )
+              (nut1 :class 'nut-class
+                  nut-hole-diameter (* ^^thickness 0.7)
+                   orientation (list
+                               ;;(rotate 180 '(0 1 0))
+                               (translate (list 0 (/ (* ^^clamp-width 1) 4) (- (- ^^nut-bolt-distance) ^nut-height)))
+                               )
+                  reference-coordinate-system ^^bolt-coordinate-system
+                  )
+              (nut2 :class 'nut-class
+                  nut-hole-diameter (* ^^thickness 0.7)
+                  orientation (list
+                               ;;(rotate 180 '(0 1 0))
+                               (translate (list 0 (/ (* ^^clamp-width 2) 4) (- (- ^^nut-bolt-distance) ^nut-height)))
+                               )
+                  reference-coordinate-system ^^bolt-coordinate-system
+                  )
+              (nut3 :class 'nut-class
+                  nut-hole-diameter (* ^^thickness 0.7)
+                   orientation (list
+                               ;;(rotate 180 '(0 1 0))
+                               (translate (list 0 (/ (* ^^clamp-width 3) 4) (- (- ^^nut-bolt-distance) ^nut-height)))
+                               )
+                  reference-coordinate-system ^^bolt-coordinate-system
+                  )
+              (bolts-nuts :class 'assembly-object
+                  object-list(list (the bolt1) (the bolt2) (the bolt3) (the nut1) (the nut2) (the nut3))
+                  )
+              (mirrored-fastning :class 'mirror-class
+                  source-object ^bolts-nuts
+                  basis-vector '((0 1 0) (0 0 1))
+                  point-on-mirror '(0 0 0)
+                  display? t
+                  )
+              (clamp :class 'union-object
+                  object-list(list (the quart-clamp-left) (the quart-clamp-right) (the quart-clamp-left-down) (the quart-clamp-right-down))
+                  )
+              (clamp-fastened :class 'union-object
+                  object-list(list (the clamp) (the mirrored-fastning) (the bolts-nuts))
+                  reference-cooridnate-system ^^local-clamp-coordinate-system
+                  )
+              
 ;;;               (pipe :class 'pipe-object
 ;;;                   outer-diameter 0.5
 ;;;                   height 5
@@ -626,6 +791,123 @@
                   
 ;;;                   )
               )
+  )
+(define-class pipe-support-clamp-with-without-tilt-class
+  :inherit-from (object)
+  :properties(
+              pipe-diameter (default 0.5)
+              pipe-radius (/ ^pipe-diameter 2)
+              tilt-angle (default 45)
+              clamp-width ^pipe-diameter
+              support-thickness (default (/ ^pipe-diameter 40))
+              base-plate-lenght (default (/ ^clamp-width 4))
+              base-plate-width (default ^clamp-width)
+              pipe-center-to-bottom-baseplate (default (* ^pipe-diameter 0.7))
+              outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
+              )
+  :subobjects (
+               (this-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- ^^pipe-center-to-bottom-baseplate))
+                   )
+               (clamp-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 ^^pipe-center-to-bottom-baseplate)
+                   reference-coordinate-system ^^this-coordinate-system
+                   display? nil
+                   )
+               (clamp :class 'clamp-class
+                   pipe-diameter ^^pipe-diameter
+                   orientation (list
+                                (rotate ^^tilt-angle '(0 1 0))
+                                (translate (list 0 0 ^^pipe-center-to-bottom-baseplate))
+                                )
+                   reference-coordinate-system ^^clamp-coordinate-system
+                   )
+               (baseplate-coordinate-system :class 'coordinate-system-class
+                   origin (list
+                           0
+                           (/ ^^base-plate-width 2)
+                           (- (/ ^^support-thickness 2))
+                           )
+                   reference-coordinate-system ^^this-coordinate-system
+                   display? nil
+                   )
+               (baseplate-surface :class 'box-object
+                   lenght ^^base-plate-lenght
+                   width ^^base-plate-width
+                   depth ^^support-thickness
+                   orientation (list (rotate 90 '(0 0 1)))
+                   reference-coordinate-system ^^baseplate-coordinate-system
+                   )
+               (support-line1 :class 'line-object
+                   point1 (list (- (* ^^outer-radius-of-clamp (sind 30))) 0 0)
+                   point2 (list (- (* ^^outer-radius-of-clamp (sind 30))) 0 (- ^^pipe-center-to-bottom-baseplate (- (* ^^outer-radius-of-clamp (cosd 30)) (/ ^^support-thickness 2))))
+                   reference-coordinate-system ^^this-coordinate-system
+                   )
+               (support-line2 :class 'line-object
+                   point1 (list 0 0 0)
+                   point2 (list 0 0 (- ^^pipe-center-to-bottom-baseplate (* ^^pipe-radius (cosd 0))))
+                   reference-coordinate-system ^^this-coordinate-system
+                   )
+               (support-line3 :class 'line-object
+                   point1 (list (* ^^outer-radius-of-clamp (sind 30)) 0 0)
+                   point2 (list (* ^^outer-radius-of-clamp (sind 30)) 0 (- ^^pipe-center-to-bottom-baseplate (- (* ^^outer-radius-of-clamp (cosd 30)) (/ ^^support-thickness 2))))
+                   reference-coordinate-system ^^this-coordinate-system
+                   )
+               (support-surface1 :class 'extrusion-object
+                   swept-object ^support-line1
+                   vector '(0.0 10.0 0.0)
+                   distance ^^clamp-width
+                   solid? t
+                   )
+               (support-surface2 :class 'extrusion-object
+                   swept-object ^support-line2
+                   vector '(0.0 10.0 0.0)
+                   distance ^^clamp-width
+                   solid? t
+                   )
+               (support-surface3 :class 'extrusion-object
+                   swept-object ^support-line3
+                   vector '(0.0 10.0 0.0)
+                   distance ^^clamp-width
+                   solid? t
+                   )
+               (support1-1 :class 'extrusion-object
+                   swept-object ^support-surface1
+                   vector '(10.0 0.0 0.0)
+                   distance (/ ^^support-thickness 2)
+                   solid? t
+                   )
+               (support2-1 :class 'extrusion-object
+                   swept-object ^support-surface2
+                   vector '(10.0 0.0 0.0)
+                   distance (/ ^^support-thickness 2)
+                   solid? t
+                   )
+               (support3-1 :class 'extrusion-object
+                   swept-object ^support-surface3
+                   vector '(10.0 0.0 0.0)
+                   distance (/ ^^support-thickness 2)
+                   solid? t
+                   )
+               (support1-2 :class 'extrusion-object
+                   swept-object ^support-surface1
+                   vector '(-10.0 0.0 0.0)
+                   distance (/ ^^support-thickness 2)
+                   solid? t
+                   )
+               (support2-2 :class 'extrusion-object
+                   swept-object ^support-surface2
+                   vector '(-10.0 0.0 0.0)
+                   distance (/ ^^support-thickness 2)
+                   solid? t
+                   )
+               (support3-2 :class 'extrusion-object
+                   swept-object ^support-surface3
+                   vector '(-10.0 0.0 0.0)
+                   distance (/ ^^support-thickness 2)
+                   solid? t
+                   )
+               )
   )
 
 (define-class pipe-support-flat-class
