@@ -626,6 +626,7 @@
   :properties (
                pipe-diameter (default 0.5)
                pipe-radius (/ ^pipe-diameter 2)
+               tilt-angle (default 45)
                start-angle-arc 4
                start-angle-flip 3
                thickness (/ ^pipe-radius 15)
@@ -648,18 +649,21 @@
                    flip-lenght (- ^point2x point1x)
                    point1 (list ^point1x 0 ^point1z)
                    point2 (list ^point2x 0 ^point2z)
+                   display? nil
                    )
                (flip-surface :class 'extrusion-object
                    swept-object ^flip-wire
                    vector '(0.0 10.0 0.0)
                    distance ^^clamp-width
                    solid? t
+                   display? nil
                    )
                (flip :class 'extrusion-object
                    swept-object ^flip-surface
                    vector '(0.0 0.0 10.0)
                    distance ^^flip-thickness
                    solid? t
+                   display? nil
                    )
                (arc-wire :class 'arc-object
                    radius ^^pipe-radius
@@ -668,19 +672,23 @@
                    orientation (list
                                 (rotate 90 '(1 0 0))
                                 )
+                   display? nil
                    )
                (arc-surface :class 'extrusion-object
                    swept-object ^arc-wire
                    vector '(0.0 10.0 0.0)
                    distance ^^clamp-width
                    solid? t
+                   display? nil
                    )
                (arc :class 'surface-thickened-class
                    source-object ^arc-surface
                    back-thickness ^^thickness
+                   display? nil
                    )
                (quart-clamp-right :class 'union-object
                    object-list(list (the flip) (the arc))
+                   display? nil
                    )
                (quart-clamp-left :class 'mirror-object
                   source-object ^quart-clamp-right
@@ -714,87 +722,87 @@
                   bolt-height (+ ^^nut-bolt-distance ^^flip-thickness)
                   orientation (list
                                ;;(rotate 180 '(0 1 0))
-                               (translate (list 0 (/ (* ^^clamp-width 1) 4) 0))
+                               (translate (list 0 (/ (* ^^clamp-width 1) 8) 0))
                                )
                   reference-coordinate-system ^^bolt-coordinate-system
+                  display? nil
                   )
               (bolt2 :class 'bolt-class
                   nut-hole-diameter (* ^^thickness 0.7)
                   bolt-height (+ ^^nut-bolt-distance ^^flip-thickness)
                   orientation (list
                                ;;(rotate 180 '(0 1 0))
-                               (translate (list 0 (/ (* ^^clamp-width 2) 4) 0))
+                               (translate (list 0 (/ (* ^^clamp-width 4) 8) 0))
                                )
                   reference-coordinate-system ^^bolt-coordinate-system
+                  display? nil
                   )
               (bolt3 :class 'bolt-class
                   nut-hole-diameter (* ^^thickness 0.7)
                   bolt-height (+ ^^nut-bolt-distance ^^flip-thickness)
                   orientation (list
                                ;;(rotate 180 '(0 1 0))
-                               (translate (list 0 (/ (* ^^clamp-width 3) 4) 0))
+                               (translate (list 0 (/ (* ^^clamp-width 7) 8) 0))
                                )
                   reference-coordinate-system ^^bolt-coordinate-system
+                  display? nil
                   )
               (nut1 :class 'nut-class
                   nut-hole-diameter (* ^^thickness 0.7)
                    orientation (list
                                ;;(rotate 180 '(0 1 0))
-                               (translate (list 0 (/ (* ^^clamp-width 1) 4) (- (- ^^nut-bolt-distance) ^nut-height)))
+                               (translate (list 0 (/ (* ^^clamp-width 1) 8) (- (- ^^nut-bolt-distance) ^nut-height)))
                                )
                   reference-coordinate-system ^^bolt-coordinate-system
+                  display? nil
                   )
               (nut2 :class 'nut-class
                   nut-hole-diameter (* ^^thickness 0.7)
                   orientation (list
                                ;;(rotate 180 '(0 1 0))
-                               (translate (list 0 (/ (* ^^clamp-width 2) 4) (- (- ^^nut-bolt-distance) ^nut-height)))
+                               (translate (list 0 (/ (* ^^clamp-width 4) 8) (- (- ^^nut-bolt-distance) ^nut-height)))
                                )
                   reference-coordinate-system ^^bolt-coordinate-system
+                  display? nil
                   )
               (nut3 :class 'nut-class
                   nut-hole-diameter (* ^^thickness 0.7)
                    orientation (list
                                ;;(rotate 180 '(0 1 0))
-                               (translate (list 0 (/ (* ^^clamp-width 3) 4) (- (- ^^nut-bolt-distance) ^nut-height)))
+                               (translate (list 0 (/ (* ^^clamp-width 7) 8) (- (- ^^nut-bolt-distance) ^nut-height)))
                                )
                   reference-coordinate-system ^^bolt-coordinate-system
+                  display? nil
                   )
               (bolts-nuts :class 'assembly-object
                   object-list(list (the bolt1) (the bolt2) (the bolt3) (the nut1) (the nut2) (the nut3))
+                  display? nil
                   )
               (mirrored-fastning :class 'mirror-object
                   source-object ^bolts-nuts
                   basis-vector '((0 1 0) (0 0 1))
                   point-on-mirror '(0 0 0)
+                  display? nil
+                  )
+              (fastning :class 'union-object
+                  object-list (list (the bolts-nuts) (the mirrored-fastning))
                   display? t
+                  orientation (list
+                               (rotate (- ^^tilt-angle) '(0 1 0))
+                               )
                   )
               (clamp :class 'union-object
                   object-list(list (the quart-clamp-left) (the quart-clamp-right) (the quart-clamp-left-down) (the quart-clamp-right-down))
+                  display? t
+                  orientation (list
+                               (rotate (- ^^tilt-angle) '(0 1 0))
+                               )
                   )
               (clamp-fastened :class 'union-object
-                  object-list(list (the clamp) (the mirrored-fastning) (the bolts-nuts))
+                  object-list(list (the clamp) (the fastning))
                   reference-cooridnate-system ^^local-clamp-coordinate-system
+
                   )
-              
-;;;               (pipe :class 'pipe-object
-;;;                   outer-diameter 0.5
-;;;                   height 5
-;;;                   thickness (* ^^thickness 3)
-;;;                   orientation (list
-;;;                                (rotate 90 '(1 0 0))
-;;;                                )
-;;;                   )
-;;;               ;;Får ikke orientert den...
-;;;               (bolt1 :class 'bolt-nut-class
-;;;                   nut-hole-diameter (/ ^^thickness 3)
-;;;                   nut-bolt-distance (* 2 (+ (* ^^pipe-radius (sind ^^start-angle-flip)) ^^thickness))
-;;;                   bolt-height (+ ^^nut-bolt-distance (* ^^thickness 2))
-;;;                   orientation (list
-;;;                                (translate (list (+ ^^point1x (/ flip-lenght 2)) (/ ^^pipe-radius 4) (- (/ ^nut-bolt-distance 2))))
-;;;                                )
-                  
-;;;                   )
               )
   )
 (define-class pipe-support-clamp-with-without-tilt-class
@@ -802,10 +810,10 @@
   :properties(
               pipe-diameter (default 0.5)
               pipe-radius (/ ^pipe-diameter 2)
-              tilt-angle (default 45)
+              clamp-tilt-angle (default 30)
               clamp-width ^pipe-diameter
               support-thickness (default (/ ^pipe-diameter 40))
-              base-plate-lenght (default (/ ^clamp-width 4))
+              base-plate-lenght (default ^clamp-width)
               base-plate-width (default ^clamp-width)
               pipe-center-to-bottom-baseplate (default (* ^pipe-diameter 0.7))
               outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
@@ -825,6 +833,7 @@
                                 (rotate ^^tilt-angle '(0 1 0))
                                 (translate (list 0 0 ^^pipe-center-to-bottom-baseplate))
                                 )
+                   tilt-angle ^^clamp-tilt-angle
                    reference-coordinate-system ^^clamp-coordinate-system
                    )
                (baseplate-coordinate-system :class 'coordinate-system-class
@@ -837,10 +846,9 @@
                    display? nil
                    )
                (baseplate-surface :class 'box-object
-                   lenght ^^base-plate-lenght
+                   height ^^base-plate-lenght
                    width ^^base-plate-width
                    depth ^^support-thickness
-                   orientation (list (rotate 90 '(0 0 1)))
                    reference-coordinate-system ^^baseplate-coordinate-system
                    )
                (support-line1 :class 'line-object
