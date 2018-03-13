@@ -808,6 +808,12 @@
 (define-class pipe-support-clamp-with-without-tilt-class
   :inherit-from (object)
   :properties(
+              ;;Pipe Direction New;;;;
+              input-origin-pos (list 3.0 3.0 3.0)
+              pipe-direction (list 0 1 0)
+              pipe-up-direction (list 0 0 1)
+              pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
+              ;;;;;;;;;;;
               pipe-diameter (default 0.5)
               pipe-radius (/ ^pipe-diameter 2)
               clamp-tilt-angle (default 30)
@@ -819,9 +825,17 @@
               outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
               )
   :subobjects (
+               ;;Changes;;;;
+               (global-coordinate-system :class 'coordinate-system-class
+                   origin ^^input-origin-pos
+                   vector-j ^^pipe-direction
+                   vector-i ^^pipe-x-direction
+                   )
                (this-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- ^^pipe-center-to-bottom-baseplate))
+                   reference-coordinate-system ^^global-coordinate-system
                    )
+               ;; End changes;;;
                (clamp-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 ^^pipe-center-to-bottom-baseplate)
                    reference-coordinate-system ^^this-coordinate-system
