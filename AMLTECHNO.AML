@@ -540,7 +540,7 @@
                               outer-diameter (nth 0 (nth !index !isolation-layer-list))
                               thickness (nth 1 (nth !index !isolation-layer-list))
                               height (* ^^length (- 0.9 (* !index 0.1)))
-                              color? (list (write-to-string "grey" (+ 1 (* !index 4))))
+                              ;;color (write-to-string "grey" (+ 1 (* !index 4)));;doesn't work
                               )
                   )
               )
