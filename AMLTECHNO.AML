@@ -465,7 +465,7 @@
                                 )
                    swept-object ^lower-pipe-support1
                    (lower-pipe-support1 :class 'lower-support-class)
-                    reference-coordinate-system ^^global-coordinate-system
+                   reference-coordinate-system ^^global-coordinate-system
                     )
                (lower-pipe-mirror :class 'mirror-object
                    source-object ^^lower-pipe-support
@@ -517,6 +517,34 @@
                    )
                )
 )
+
+(define-class isolated-pipe-class
+  :inherit-from (union-object)
+  :properties(
+              pipe-diameter (default 0.1)
+              length (default (* ^pipe-diameter 25))
+              isolation-layer-list (default (list '(0.2 0.05) '(0.3 0.05)))
+              number-of-isolation-layers (length ^isolation-layer-list)
+              )
+  :subobjects(
+              (pipe :class 'pipe-object
+                  outer-diameter ^^pipe-diameter
+                  thickness (/ ^^pipe-diameter 2)
+                  height ^^length
+                  )
+              (isolation :class 'series-object
+                  series-prefix 'isolation
+                  quantity ^^number-of-isolation-layers
+                  class-expression 'pipe-object
+                  init-form '(
+                              outer-diameter (nth 0 (nth !index !isolation-layer-list))
+                              thickness (nth 1 (nth !index !isolation-layer-list))
+                              height (* ^^length (- 0.9 (* !index 0.1)))
+                              color? (list (write-to-string "grey" (+ 1 (* !index 4))))
+                              )
+                  )
+              )
+  )
 
 (define-class bolt-head-class
   :inherit-from (union-object)
@@ -594,6 +622,7 @@
                    )
                )
   )
+
 (define-class shims-class
   :inherit-from (graphic-object)
   :properties(
@@ -951,6 +980,7 @@
                    )                   
                )
   )
+
 (define-class roller-class
   :inherit-from (rotation-sweep-object solid-object)
   :properties(
