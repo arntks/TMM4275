@@ -709,11 +709,13 @@
                tilt-angle (default 30)
                start-angle-arc 4
                start-angle-flip 3
+               flip-lenght (/ ^pipe-radius 4)
                thickness (/ ^pipe-radius 15)
                flip-thickness (* ^thickness 3)
                clamp-width (default (/ ^pipe-radius 0.5))
                hole-diameter (* ^thickness 0.7)
                object-list (list (the quart-clamp-right) (the quart-clamp-left))
+               orientation (translate (list 0 (- (/ ^clamp-width 2)) 0))
                )
   :subobjects (
                (flip-wire :class 'line-object
@@ -761,75 +763,83 @@
                    back-thickness ^^thickness
                    display? nil
                    )
-               (quart-clamp-right :class 'union-object
+               (quart-clamp :class 'union-object
                    object-list(list (the flip) (the arc))
                    display? nil
                    )
-               (hole :class 'cylinder-object
-                   height (* ^^thickness 4)
-                   diameter ^^hole-diameter
-                   )
                 (bolt1 :class 'cylinder-object
-                    height (* ^^thickness 4)
-                  orientation (list
-                               ;;(rotate 180 '(0 1 0))
-                               (translate (list
-                                           (+ ^^pipe-radius (/ ^^flip-lenght 2))
-                                           (/ (* ^^clamp-width 1) 8)
-                                           ^head-height
-                                           )
-                                          )
-                               )
-                  display? nil
+                    height (* ^^thickness 5)
+                    diameter ^^hole-diameter
+                    orientation (list
+                                 ;;(rotate 180 '(0 1 0))
+                                 (translate (list
+                                             (+ ^^pipe-radius (/ ^^flip-lenght 2))
+                                             (/ (* ^^clamp-width 1) 8)
+                                             0
+                                             )
+                                            )
+                                 )
+                    display? nil
                   )
-                (bolt2 :class 'bolt-nut-class
-                  nut-hole-diameter (* ^^thickness 0.7)
-                  nut-bolt-distance ^^nut-bolt-distance
+                (bolt2 :class 'cylinder-object
+                    height (* ^^thickness 5)
+                    diameter ^^hole-diameter
                   orientation (list
                                ;;(rotate 180 '(0 1 0))
                                (translate (list
                                            (+ ^^pipe-radius (/ ^^flip-lenght 2))
                                            (/ (* ^^clamp-width 4) 8)
-                                           ^head-height
-                                           )
-                                          )
-                               )
-                  display? nil
-                  )
-              (bolt3 :class 'bolt-nut-class
-                  nut-hole-diameter (* ^^thickness 0.7)
-                  nut-bolt-distance ^^nut-bolt-distance
-                  orientation (list
-                               ;;(rotate 180 '(0 1 0))
-                               (translate (list
-                                           (+ ^^pipe-radius (/ ^^flip-lenght 2))
-                                           (/ (* ^^clamp-width 7) 8)
-                                           ^head-height
-                                           )
-                                          )
-                               )
-                  display? nil
-                  )
-
-              (bolts :class 'union-object
-                  object-list(list (the bolt1) (the bolt2) (the bolt3))
-                  orientation (list
-                               (translate (list
                                            0
-                                           (- (/ ^^clamp-width 2))
-                                           ^^flip-thickness
                                            )
                                           )
                                )
                   display? nil
                   )
-               (quart-clamp-left :class 'mirror-object
-                  source-object ^quart-clamp-right
-                  basis-vector '((0 1 0) (0 0 1))
-                  point-on-mirror '(0 0 0)
-                  display? nil            
-               )              
-              )
+                (bolt3 :class 'cylinder-object
+                    height (* ^^thickness 5)
+                    diameter ^^hole-diameter
+                    orientation (list
+                                 ;;(rotate 180 '(0 1 0))
+                                 (translate (list
+                                             (+ ^^pipe-radius (/ ^^flip-lenght 2))
+                                             (/ (* ^^clamp-width 7) 8)
+                                             0
+                                             )
+                                            )
+                                 )
+                    display? nil
+                    )
+                
+                (bolts :class 'union-object
+                    object-list(list (the bolt1) (the bolt2) (the bolt3))
+                    orientation (list
+                                 (translate (list
+                                             0
+                                             0;;(- (/ ^^clamp-width 2))
+                                             ^^flip-thickness
+                                             )
+                                            )
+                                 )
+                    display? nil
+                    )
+                (quart-clamp-right :class 'difference-object
+                    object-list (list (the quart-clamp) (the bolts))
+                    display? nil
+                    )
+                (quart-clamp-left :class 'mirror-object
+                    source-object ^quart-clamp-right
+                    basis-vector '((0 1 0) (0 0 1))
+                    point-on-mirror '(0 0 0)
+                    display? nil            
+                    )              
+                )
+  )
+
+(define-class bottom-cradle-class
+  :inherit-from (top-cradle-class)
+  :properties (
+               pipe-diameter (default 0.5)
+               )
   )
 
 (define-class cradle-class
