@@ -529,22 +529,18 @@
               total-diameter (nth 0 (nth (- ^number-of-isolation-layers 1) ^isolation-layer-list))
               object-list (list (the pipe) (the isolation))
               
-              ctrl-pts-z (loop for i in ^isolation-layer-list collect (nth 0 i))
-              ctrl-pts-coordinates (loop for i in ^ctrl-pts-z
-                         collect (list 0.0 0.0 i))
+             ;;;  ctrl-pts-z (loop for i in ^isolation-layer-list collect (nth 0 i))
+;;;               ctrl-pts-coordinates (loop for i in ^ctrl-pts-z
+;;;                          collect (list 0.0 0.0 i))
             
-              (test-ctrl :class 'point-object
-                  coordinates (nth 0 ^ctrl-pts-coordinates)
-                  )
+;;;               (test-ctrl :class 'point-object
+;;;                   coordinates (nth 0 ^ctrl-pts-coordinates)
+;;;                   )
 
-              ctrl-pts-object-list (loop for i from 0 to (length ^ctrl-pts-coordinates)
-
-                                     do (((format nil "Point-00~a" i) :class 'point-object
-                                                         coordinates (nth i ^ctrl-pts-coordinates))))
-              ;;(loop for i from 0 to (length ^ctrl-pts-coordinates)
-
-                ;;do (print (format nil "Point-00~a" i)))
-              
+;;;               ctrl-pts-object-list (loop for i from 0 to (- (^ctrl-pts-coordinates 1))
+                                    
+;;;                                     do (((format nil "Point-00~a" i) :class 'point-object
+;;;                                                coordinates (nth i ^ctrl-pts-coordinates ))))
               )
   :subobjects(
               
