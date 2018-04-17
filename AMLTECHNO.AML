@@ -1142,7 +1142,7 @@
                                )
                   display? nil
                   )
-              (roller-face :class 'extrusion-class
+              (roller-face :class 'extrusion-object
                   swept-object ^arc-wire
                   vector '(0 0 1)
                   distance ^^roller-thickness
@@ -1208,7 +1208,7 @@
                                )
                   display? nil
                    )
-               (cones :class 'union-class
+               (cones :class 'union-object
                    object-list (list (the cone1) (the cone2))
                    display? nil
                    )
