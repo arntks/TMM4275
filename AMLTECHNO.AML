@@ -1010,7 +1010,7 @@
               nut-height (* ^nut-hole-diameter 0.9)
               head-height ^nut-height
 
-              view (default 'bom);;or bom or show
+              view (default 'bom);;fea or bom
               )
   :subobjects (
                ;;Changes;;;;
