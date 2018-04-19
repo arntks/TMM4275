@@ -725,7 +725,9 @@
                clamp-width (default (/ ^pipe-radius 0.5))
                hole-diameter (* ^thickness 0.7)
                object-list (list (the quart-clamp-right) (the quart-clamp-left))
-               
+               (ctrl-pts-cradle :class 'point-object
+                   coordinates (list 0.0 0.0 (+ ^^pipe-radius ^^thickness))
+                   )
                )
   :subobjects (
                (flip-wire :class 'line-object
