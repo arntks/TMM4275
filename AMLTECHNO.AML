@@ -532,14 +532,17 @@
               ctrl-pts-z (loop for i in ^isolation-layer-list collect (nth 0 i))
               ctrl-pts-coordinates (loop for i in ^ctrl-pts-z
                          collect (list 0.0 (/ i 2) 0.0))
-              )
-  :subobjects(
-               
               (ctrl-pts-object-list :class 'series-object
-                                   class-expression 'point-object
-                                   init-form '(coordinates (nth !index ^^ctrl-pts-coordinates))
-                                   quantity (length ^^ctrl-pts-coordinates)
-                                   series-prefix 'ctrl-pts-00)
+                                    class-expression 'point-object
+                                    init-form '(coordinates (nth !index ^^ctrl-pts-coordinates))
+                                    quantity (length ^^ctrl-pts-coordinates)
+                                    series-prefix 'ctrl-pts-00)
+              )
+
+             
+  :subobjects(
+              
+              
               (pipe :class 'pipe-object
                   outer-diameter ^^pipe-diameter
                   thickness (/ ^^pipe-diameter 2)
@@ -711,9 +714,16 @@
                clamp-width (default (/ ^pipe-radius 0.5))
                hole-diameter (* ^thickness 0.7)
                object-list (list (the quart-clamp-right) (the quart-clamp-left))
+               (ctrl-point :class 'point-object
+                    coordinates (list 0.0 0.0 (+ ^^pipe-radius ^^thickness))
+                   )
+               
+               
                
                )
   :subobjects (
+
+              
                (flip-wire :class 'line-object
                    point1x (* ^^pipe-radius (cosd ^^start-angle-flip))
                    point2x (+ (* ^^pipe-radius (cosd ^^start-angle-flip)) (/ ^^pipe-radius 4))
