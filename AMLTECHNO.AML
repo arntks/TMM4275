@@ -539,16 +539,17 @@
               ctrl-pts-z (loop for i in ^isolation-layer-list collect (nth 0 i))
               ctrl-pts-coordinates (loop for i in ^ctrl-pts-z
                          collect (list 0.0 (/ i 2) 0.0))
-              )
-  :subobjects(
-               
               (ctrl-pts-object-list :class 'series-object
                                    class-expression 'point-object
                                    init-form '(coordinates (nth !index ^^ctrl-pts-coordinates))
                                    quantity (length ^^ctrl-pts-coordinates)
-                                   series-prefix 'ctrl-pts-00
+                                   series-prefix 'ctrl-pts
                                    display? nil
                                    )
+              )
+  :subobjects(
+               
+              
               (pipe :class 'pipe-object
                   outer-diameter ^^pipe-diameter
                   thickness (/ ^^pipe-diameter 8)
