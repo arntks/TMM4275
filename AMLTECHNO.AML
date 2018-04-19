@@ -1604,7 +1604,36 @@
                 )
   )
 
-
+(define-class angled-insulation-class
+  :inherit-from (union-object)
+  :properties (
+               pipe-diameter (default 0.5)
+               pipe-radius (/ ^pipe-diameter 2)
+               pipe-length (default ^pipe-diameter)
+               insulation-angle (default 90)
+               thickness (default 0.2)
+               )
+  :subobjects (
+               (arc-wire :class 'arc-object
+                   radius ^^pipe-radius
+                   start-angle (-(/ ^^insulation-angle 2))
+                   end-angle (+ ^start-angle ^^insulation-angle)
+                   orientation (list
+                                (rotate 90 '(0 0 1))
+                                )
+                   )
+               (arc-surface :class 'extrusion-object
+                   swept-object ^arc-wire
+                   vector '(0 0 1)
+                   distance ^^pipe-length
+                   solid? t
+                   )
+               (arc :class 'surface-thickened-class
+                   source-object ^arc-surface
+                   front-thickness ^^thickness
+                   )
+              )
+  )
 
 ;;; (define-class pipe-support-data-class
 ;;;   :inherit-from (pipe-support-class data-model-node-mixin)
