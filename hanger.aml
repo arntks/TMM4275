@@ -1,0 +1,141 @@
+(in-package :aml)
+
+(define-class assembly-class
+  :inherit-from (union-object)
+  :properties (
+               )
+  :subobjects (
+               pipe-diameter (default 0.5)
+               (U-class :class 'hanger-U-class
+                 orientation (list
+                               (rotate 90.0 '(0.0 0.0 0.0))
+                               (translate (list 0.0  0.0 (- 0 (* ^pipe-diameter 1.2))))
+                               )
+                 )
+               (mid-class :class 'hanger-mid-class
+                  orientation (list
+                               (rotate 90.0 '(0.0 0.0 0.0))
+                               (translate (list 0.0  0.0 (- 0 (* ^pipe-diameter 0.4))))
+                               )
+                  )
+               (top-class :class 'hanger-top-class
+                   orientation (list
+                               (rotate 90.0 '(0.0 0.0 0.0))
+                               (translate '(0.0 0.0 0.0))
+                               )
+                   )
+               )
+  )
+
+
+(define-class hanger-U-class1
+ :inherit-from (extended-elbow-object)
+ :properties (
+      pipe-diameter (default 0.5)
+      thickness (/ ^pipe-diameter 15)
+      elbow-radius (+ (/ ^thickness 2) (/ ^pipe-diameter 2))
+      diameter (+ 0 ^thickness)
+		start-point  (list (- 0 ^elbow-radius) 0 (* 0.75 ^pipe-diameter))               
+		start-vector '(0 0 -1)             
+		end-point (list 0 0 (- 0 ^elbow-radius))
+		end-vector '(-1 0 0)                
+		)   
+)
+
+(define-class hanger-U-class2
+ :inherit-from (extended-elbow-object)
+ :properties (
+      pipe-diameter (default 0.5)
+      thickness (/ ^pipe-diameter 15)
+      elbow-radius (+ (/ ^thickness 2) (/ ^pipe-diameter 2))
+      diameter (+ 0 ^thickness)
+		start-point  (list ^elbow-radius 0 (* 0.75 ^pipe-diameter))               
+		start-vector '(0 0 -1)             
+		end-point (list 0 0 (- 0 ^elbow-radius))
+		end-vector '(1 0 0)                
+		)   
+)
+
+
+(define-class hanger-U-class
+  :inherit-from (union-object)
+  :properties (
+               )
+  :subobjects (
+               (class1 :class 'hanger-U-class1)
+               (class2 :class 'hanger-U-class2)
+               )
+)
+
+(define-class hanger-mid-class
+  :inherit-from (union-object)
+  :properties (
+               pipe-diameter (default 0.5)
+               orientation (list
+                           (translate (list 0.0 0.0 0.0))
+               )
+               object-list (list (the horizontal-plate) (the vertical-plate1) (the vertical-plate2))
+               )
+  :subobjects (
+               (horizontal-plate :class 'box-object
+                   width (* ^^pipe-diameter 1.3)
+                   depth (* ^^pipe-diameter 0.1)
+                   height (* ^^pipe-diameter 0.1)
+                   orientation (list
+                               (translate (list 0.0 0.0 0.0)))
+                   display? nil
+                   )
+               (vertical-plate1 :class 'box-object
+                   width (* ^^pipe-diameter 0.1)
+                   depth (* ^^pipe-diameter 0.1)
+                   height (* ^^pipe-diameter 0.2)
+                   orientation (list
+                               (rotate 90.0 '(1.0 0.0 0.0))
+                               (translate (list (- (* ^^pipe-diameter 0.1)) 0.0 (* ^^pipe-diameter 0.15))))
+                   display? nil
+                   )
+               (vertical-plate2 :class 'box-object
+                   width (* ^^pipe-diameter 0.1)
+                   depth (* ^^pipe-diameter 0.1)
+                   height (* ^^pipe-diameter 0.2)
+                   orientation (list
+                               (rotate 90.0 '(1.0 0.0 0.0))
+                               (translate (list (* ^^pipe-diameter 0.1) 0.0 (* ^^pipe-diameter 0.15)))      
+                               )
+                   display? nil
+                   )
+  )
+  )
+
+(define-class hanger-top-class
+  :inherit-from (union-object)
+  :properties (
+               pipe-diameter (default 0.5)
+               orientation (list
+                            (translate '(0.0 0.0 0.0)
+                                       ))
+               object-list (list (the horizontal-plate) (the vertical-plate))
+               )
+  :subobjects (
+                 (horizontal-plate :class 'box-object
+                   width (* ^^pipe-diameter 0.5)
+                   depth (* ^^pipe-diameter 0.4)
+                   height (* ^^pipe-diameter 0.1)
+                   orientation (list
+                                (rotate 90.0 '(1.0 0.0 0.0))
+                                (translate (list 0.0 0.0 0.0)))
+                   display? nil
+                   )
+               (vertical-plate :class 'box-object
+                   width (* ^^pipe-diameter 0.1)
+                   depth (* ^^pipe-diameter 0.15)
+                   height (* ^^pipe-diameter 0.25)
+                   orientation (list
+                               (rotate 90.0 '(1.0 0.0 0.0))
+                               (translate (list 0.0  0.0 (- (* ^^pipe-diameter 0.175)))
+                                          )
+                               )
+                   display? nil
+                   )
+               )
+  )
