@@ -178,6 +178,28 @@
                )
   )
 
+(define-class test-klasse
+  :inherit-from (object)
+  :properties (
+               radius (default 5)
+               )
+  :subobjects (
+               (flat-ex :class 'extrusion-object
+                  swept-object ^flat-ubeam1
+                  vector '(0.0 0.0 1.0)
+                  distance 2
+                  (flat-ubeam1 :class 'arc-object
+                               radius ^^radius
+                               )
+                  )
+               (flat-surf :class 'surface-thickened-class
+                  source-object ^^flat-ex
+                  front-thickness 0.5
+                  back-thickness 0.5
+                  )
+               )
+  )
+               
 
 (define-class flat-ubeam-class
   :inherit-from (object)
@@ -197,6 +219,7 @@
                ;;Point on mirror, connected to the position input
                input-origin-pos (default (list 0.0 0.0 0.0))
                ;;
+               thickness (default (/ ^outer-pipe-radius 20))
                pipe-direction (default (list 1.0 0.0 0.0))
                pipe-up-direction(default (list 0.0 0.0 1.0))
                ;;The reference coordinate system; default set in (0.0 0.0 0.0) 
@@ -224,6 +247,10 @@
                                )
                   reference-coordinate-system ^^ubeam-coordinate-system
                   )
+              (flat-surf :class 'surface-thickened-class
+                  source-object ^^flat-ex
+                  front-thickness ^^thickness
+                  )
               (flat-pipe :class 'extrusion-object
                   swept-object ^flat-pipe1
                   vector '(0.0 0.0 1.0)
@@ -235,10 +262,14 @@
                               )
                   reference-coordinate-system ^^pipe-coordinate-system
                   )
+              (flat-pipe-surf :class 'surface-thickened-class
+                  source-object ^flat-pipe
+                  back-thickness ^^thickness
+                  )
               (flat-pipe-mirror :class 'mirror-object
                   basis-vector (list ^^pipe-direction ^^pipe-up-direction)
                   point-on-mirror ^^input-origin-pos
-                  source-object ^^flat-pipe
+                  source-object ^^flat-pipe-surf
                   )
               (lower-flat-pipe :class 'extrusion-object
                   swept-object ^lower-pipe
@@ -250,10 +281,14 @@
                               )
                   reference-coordinate-system ^^lower-pipe-coordinate-system
                   )
+              (lower-flat-surf :class 'surface-thickened-class
+                  source-object ^lower-flat-pipe
+                  front-thickness ^^thickness
+                  )
                (lower-flat-pipe-mirror :class 'mirror-object
                   basis-vector (list ^^pipe-direction ^^pipe-up-direction)
                   point-on-mirror ^^input-origin-pos
-                  source-object ^^lower-flat-pipe
+                  source-object ^^lower-flat-surf
                   )
               
               )
@@ -1556,7 +1591,8 @@
                ;;Base-type
                base-type (default base-ibeam-class)
                base-size1 (* ^outer-pipe-radius 4.41)
-
+               ;;Ubeam thickness
+               thickness (default (/ ^outer-pipe-radius 20))
                ;;Base-concrete-ubeam
                
                )
@@ -1580,7 +1616,7 @@
                    )
                (ubeam3-coordinate-system :class 'coordinate-system-class
                    vector-j '(0 0 1)
-                   origin (list 0.0 (* ^^outer-pipe-radius 0.45) ^^outer-pipe-radius)
+                   origin (list 0.0 (* ^^outer-pipe-radius 0.45) (+ ^^outer-pipe-radius ^^thickness))
                    reference-coordinate-system ^^global-coordinate-system
                    )
                (ubeam1 :class 'flat-ubeam-class
@@ -1610,7 +1646,7 @@
                                         )
                               distance ^^base-plate-depth
                               orientation (list
-                                           (translate (list (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) (-(* ^^outer-pipe-radius 0.35)) 0.0)))
+                                           (translate (list (+ (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) ^^thickness) (-(* ^^outer-pipe-radius 0.35)) ^^thickness)))
                               )
                    reference-coordinate-system ^^global-coordinate-system
                    )
