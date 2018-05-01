@@ -518,15 +518,24 @@
                )
 )
 
-(define-class isolated-pipe-class
-  :inherit-from (assembly-object)
+(define-class insulated-pipe-class
+  :inherit-from (assembly-object data-model-node-mixin)
   :properties(
               colors '(yellow yellow1 yellow2 yellow3 yellow4 yellowgreen violetred violetred1 violetred2 violetred3 violetred4)
-              pipe-diameter (default 0.1)
+              (pipe-diameter :class 'editable-data-property-class
+                  formula 0.1
+                  label "Pipe diameter: "
+                  )
+              thickness (/ ^pipe-diameter 8)
+              (pipe-thickness :class 'editable-data-property-class
+                  formula ^thickness
+                  label "Pipe thickness: "
+                  )
               length (default (* ^pipe-diameter 20))
-              isolation-layer-list (default (list '(0.2 0.05) '(0.3 0.05)))
-              number-of-isolation-layers (length ^isolation-layer-list)
-              total-diameter (nth 0 (nth (- ^number-of-isolation-layers 1) ^isolation-layer-list))
+              insulation-layer-list (default (list '(0.2 0.05) '(0.3 0.05)))
+
+              number-of-insulation-layers (length ^insulation-layer-list)
+              total-diameter (nth 0 (nth (- ^number-of-insulation-layers 1) ^insulation-layer-list))
               (object-list :class 'private-property
                   formula (remove
                            (the superior)
@@ -536,7 +545,7 @@
                             ))
                   ) 
               orientation (list (rotate 90 '(1 0 0)))
-              ctrl-pts-z (loop for i in ^isolation-layer-list collect (nth 0 i))
+              ctrl-pts-z (loop for i in ^insulation-layer-list collect (nth 0 i))
               ctrl-pts-coordinates (loop for i in ^ctrl-pts-z
                          collect (list 0.0 (/ i 2) 0.0))
               (ctrl-pts-object-list :class 'series-object
@@ -552,17 +561,17 @@
               
               (pipe :class 'pipe-object
                   outer-diameter ^^pipe-diameter
-                  thickness (/ ^^pipe-diameter 8)
+                  thickness ^^pipe-thickness
                   height ^^length
                   display? nil
                   )
-              (isolations :class 'series-object
+              (insulations :class 'series-object
                   series-prefix 'isolation
-                  quantity ^^number-of-isolation-layers
+                  quantity ^^number-of-insulation-layers
                   class-expression 'pipe-object
                   init-form '(
-                              outer-diameter (nth 0 (nth !index !isolation-layer-list))
-                              thickness (nth 1 (nth !index !isolation-layer-list))
+                              outer-diameter (nth 0 (nth !index !insulation-layer-list))
+                              thickness (nth 1 (nth !index !insulation-layer-list))
                               height (* ^^length (- 0.9 (* !index 0.1)))
                               color (nth !index !colors) 
                               display? nil
@@ -1001,7 +1010,9 @@
               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
               reference-coordinate-system (the clamp-reference-coordinate-system)
               ;;;;;;;;;;;
-              pipe-diameter (default 0.5)               
+             (pipe-diameter :class 'editable-data-property-class
+                  label "Pipe diameter: "
+                  formula 0.1)             
               pipe-radius (/ ^pipe-diameter 2)
               pipe-center-to-bottom-baseplate (default ^pipe-diameter)
               tilt-angle (default 30)
@@ -1024,7 +1035,7 @@
                    )
                ;; End changes;;;
                (cradle-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 (- ^^pipe-center-to-bottom-baseplate))
+                   origin (list 0.0 0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
                    reference-coordinate-system ^^pipe-reference-coordinate-system
                    display? t
                    )
@@ -1040,11 +1051,11 @@
                    orientation (rotate (- ^^tilt-angle) '(0 1 0))
                    reference-coordinate-system ^^pipe-reference-coordinate-system
                    )
-               (isolated-pipe :class 'isolated-pipe-class
-                   pipe-diameter 0.1
-                   isolation-layer-list (list '(0.2 0.05) '(0.3 0.05) '(0.5 .1))
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
-                   )
+;;;                (isolated-pipe :class 'isolated-pipe-class
+;;;                    pipe-diameter 0.1
+;;;                    isolation-layer-list (list '(0.2 0.05) '(0.3 0.05) '(0.5 .1))
+;;;                    reference-coordinate-system ^^pipe-reference-coordinate-system
+;;;                    )
                (bolt1 :class 'bolt-nut-class
                    nut-hole-diameter ^^nut-hole-diameter
                    nut-bolt-distance ^^nut-bolt-distance
@@ -1685,5 +1696,141 @@
         
         )
     pointlist
+    )
+  )
+
+(define-class pipe-support-with-class
+  :inherit-from (data-model-node-mixin)
+  :properties(
+              input-origin-pos (default (list 0.0 1.0 1.0))
+              pipe-direction (list 0 1 0)
+              pipe-up-direction (list 0 0 1)
+              pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
+
+              (support-type :class 'editable-data-property-class
+                  formula "none"
+                  label "Support type: "
+                  interactive-method '(choosing-support-type-method (
+                                                        "Cradle"
+                                                        "Roller")
+                                                       )
+                  )
+              (pipe-view :class 'editable-data-property-class
+                  formula "no-pipe"
+                  label "Pipe: "
+                  interactive-method '(choosing-pipe-method (
+                                                        "no-pipe"
+                                                        "insulated-pipe"
+                                                        "regular-pipe")
+                                                       )
+                  )
+                                    
+                  
+              (pipe-outer-diameter :class 'editable-data-property-class
+                  formula "6"
+                  label "Pipe outer Diameter"
+                  editable? (case !pipe-view
+                              ('regular-pipe t)
+                              (t nil)
+                              )
+                  )
+              (insulation-layers :class 'editable-data-property-class
+                  formula (list '(0.2 0.05) '(0.3 0.05))
+                  label "layers: "
+                  editable? (case !pipe-view
+                              ('insulated-pipe t)
+                              (t nil)
+                              )
+                  )
+
+              )
+                  
+  :subobjects(
+              (pipe :class (case !pipe-view
+                             ('insulated-pipe 'insulated-pipe-class);;Må endre skrivefeil
+                             ('regular-pipe 'pipe-object)
+                             (t 'null-object))
+                  insulation-layer-list ^^insulation-layers
+                  )
+              
+              (support :class (case !support-type
+                                ('cradle 'pipe-support-cradle-with-tilt-style-01-class)
+                                ('roller 'pipe-support-roller-style-01-class)
+                                (t 'null-object)
+                                )
+                  pipe-diameter ^^pipe-outer-diameter
+                  view 'fea
+
+                  )
+              )
+  )
+
+(define-method choosing-support-type-method editable-data-property-class (index)
+  (case index
+    (1
+     (change-value !support-type 'cradle)
+     (list 'cradle))
+    (2
+     (change-value !support-type 'roller)
+     (list 'roller))
+    )
+  )
+(define-method choosing-pipe-method editable-data-property-class (index)
+  (case index
+    (1
+     (change-value !pipe-view 'no-pipe)
+     (list 'no-pipe))
+    (2
+     (change-value !pipe-view 'insulated-pipe)
+     (list 'insulated-pipe))
+    (3
+     (change-value !pipe-view 'regular-pipe)
+     (list 'regular-pipe))
+    )
+  )
+
+(define-class test-editable-data-property-class
+  :inherit-from(point-object data-model-node-mixin)
+  :properties(
+              (coordinates :class 'editable-data-property-class
+                  label "Coordinates"
+                  formula '(0 0 0)
+                  interactive-method '(select-point-method ("Select a Point" "Select another Point"))
+                  )
+              property-objects-list (list
+                                     (list (the superior coordinates self)
+                                           '(apply-formula? t))
+                                     )
+              )
+  )
+(define-method select-point-method editable-data-property-class (option)
+  (message-box "Message" (format nil "select-point-method called with option = ~a" option))
+  (select-a-point-method)
+  )
+
+
+
+
+(define-class point-class
+  :inherit-from(point-object)
+  :properties(
+              (coordinates :class 'interactive-data-property-class
+                  formula '(0.0 0.0 0.0)
+                  interactive-method 'interactive-select-point
+                  )
+              )
+  )
+;; Assumption:
+;; The functions select-a-point-from-graphics-window and select-a-point-frommenu are user functions.
+;; They return a list of the '(x y z) coordinates of a point
+(define-method interactive-select-point interactive-data-property-class
+  (button-index)
+  (case button-index
+    (1 (let ((point-coords (select-a-point-from-graphics-window))
+             )
+         (when point-coords (list point-coords nil))))
+    (3 (let ((point-coords (select-a-point-from-menu))
+             )
+         (when point-coords (list point-coords nil))))
     )
   )
