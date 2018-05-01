@@ -358,124 +358,7 @@
     )
   )
 
-(define-class pipe-support-pipe-class
-  :inherit-from (position-object)
-  :properties (
-               ;;Width: X Height: Y Depth: Z
-               
-               
-               ;;USER INPUTS;;
-               input-origin-pos (list 3.0 3.0 3.0)
-               pipe-direction (list 1 0 0)
-               pipe-up-direction (list 0 0 1)
-               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
-               ;;Pipe radius
-               outer-pipe-radius (default 5)
-               ;;Clearance between pipe and base-plate
-               clearance (default 0)
 
-
-               
-               ;;BACKEND PROPERTIES;;
-               ;;Ubeam
-               ubeam-pipe-gap (* ^outer-pipe-radius 0.05)
-               ubeam-radius 0.0
-               ubeam-height 0.0
-
-               ;;Base properties
-               base-height ^base-plate-height
-               base-depth (* ^outer-pipe-radius 0.5)
-               base-width (* ^outer-pipe-radius 3)
-
-               ;;Base-plate properties
-               base-plate-height (* (+ ^outer-pipe-radius ^ubeam-thickness) 1.05)
-               base-plate-depth (* ^outer-pipe-radius 0.05)
-               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 2.2) 
-               
-
-               ;;Ubeam properties
-               ubeam-angle (default 180)
-               ubeam-thickness (* ^outer-pipe-radius 0.05)
-               ubeam-outer-diameter (* ^outer-pipe-radius 0.05)
-
-               ;;Ubeam pipe properties
-               pipe-diameter ^ubeam-outer-diameter
-               pipe-height (* ^outer-pipe-radius 1.4)
-
-               ;;Base-type
-               base-type (default base-ibeam-class)
-               base-size1 (* ^outer-pipe-radius 4.41)
-
-               
-               )
-  
-  :subobjects (
-               (ubeam1-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
-                   reference-coordinate-system ^^global-coordinate-system
-                   )
-               (ubeam1 :class 'ubeam-class
-                   elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
-                   thickness ^^ubeam-thickness
-                   outer-diameter ^^ubeam-outer-diameter
-                   outer-pipe-radius ^^outer-pipe-radius
-                   ubeam-pipe-gap ^^ubeam-pipe-gap
-                   pipe-height ^^pipe-height
-                   base-depth ^^base-depth
-                   diameter ^^pipe-diameter
-                   reference-coordinate-system ^^ubeam1-coordinate-system
-                   )
-               (ubeam2-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 (* ^^outer-pipe-radius -0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
-                   reference-coordinate-system ^^global-coordinate-system
-                   )
-               (ubeam2 :class 'ubeam-class
-                   elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
-                   thickness ^^ubeam-thickness
-                   outer-diameter ^^ubeam-outer-diameter
-                   outer-pipe-radius ^^outer-pipe-radius
-                   ubeam-pipe-gap ^^ubeam-pipe-gap
-                   pipe-height ^^pipe-height
-                   base-depth ^^base-depth
-                   diameter ^^pipe-diameter
-                   reference-coordinate-system ^^ubeam2-coordinate-system
-                   )
-               (global-coordinate-system :class 'coordinate-system-class
-                   origin ^^input-origin-pos
-                   vector-j ^^pipe-direction
-                   vector-i ^^pipe-x-direction
-                   )
-               (base-plate-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
-                   reference-coordinate-system ^^global-coordinate-system
-                   )
-               (base-plate :class 'box-object
-                   height ^^base-plate-height
-                   depth ^^base-plate-depth
-                   width ^^base-plate-width
-                   reference-coordinate-system ^^base-plate-coordinate-system
-                   )
-               
-               (lower-pipe-support :class 'extrusion-object
-                   outer-radius ^outer-pipe-radius
-                   vector '(0 1 0)
-                   distance (/ (* ^^base-plate-height 1.6) 2)
-                   orientation (list
-                                (translate (list (* ^^outer-pipe-radius 0.9) (-(/ (* ^^base-plate-height 0.8) 2)) (+ ^^base-plate-depth (* ^^outer-pipe-radius 0.2))))
-                                )
-                   swept-object ^lower-pipe-support1
-                   (lower-pipe-support1 :class 'lower-support-class)
-                   reference-coordinate-system ^^global-coordinate-system
-                    )
-               (lower-pipe-mirror :class 'mirror-object
-                   source-object ^^lower-pipe-support
-                   basis-vector (list ^^pipe-direction ^^pipe-up-direction)
-                   point-on-mirror ^^input-origin-pos
-                   )
-               
-
-                )
-  )
 
 
 (define-class nut-class
@@ -650,66 +533,7 @@
                )
   )
 
-(define-class shims-class
-  :inherit-from (graphic-object)
-  :properties(
-              pipe-diameter (default 0.5)
-              thickness (default (/ ^pipe-diameter 40))
-              pipe-radius (/ ^pipe-diameter 2)
-              contact-shims-pipe-angle (default 60)
-              angle (/ ^contact-shims-pipe-angle 2)
-              pipe-center-to-top-baseplate (default (/ (* ^pipe-radius 3) 2))
-              point4z (* (* ^pipe-radius 0.6) (sind ^angle))
-              point-list (list
-                          (list (- (* ^pipe-radius 0.8) (+ ^thickness 0.00001)) 0.0 0.0)
-                          (list (* ^pipe-radius 0.2) 0.0 0.0)
-                          (list (* ^pipe-radius 0.2) 0.0 (- ^pipe-center-to-top-baseplate ^pipe-radius))
-                          (list (* ^pipe-radius 0.8) 0.0 (+ (- ^pipe-center-to-top-baseplate ^pipe-radius) ^point4z))
-                          (list (* ^pipe-radius 0.8) 0.0 0.0)
-                          )
-              bolt-hole-width (default (* ^thickness 0.6))
-              bolt-height (* ^pipe-radius 0.8)
-              bolt-to-nut-distance (default (* 2 (* ^pipe-radius 0.8)))
-              shim-width (/ ^pipe-diameter 6)
-              )              
-  :subobjects(
-              (lines :class 'polyline-object
-                  vertices ^^point-list
-                  )
-              (frame :class 'extrusion-object
-                  swept-object ^lines
-                  vector '(0.0 10.0 0.0)
-                  distance ^^shim-width
-                  solid? t
-                  )
-              (right-shim :class 'surface-thickened-class
-                  source-object ^frame
-                  back-thickness ^^thickness
-                  )
-              (left-shim :class 'mirror-object
-                  source-object ^right-shim
-                  basis-vector '((0 1 0) (0 0 1))
-                  point-on-mirror '(0 0 0)
-               )
 
-              (shim :class 'assembly-object
-                  object-list(list (the right-shim) (the left-shim))
-                  )
-              (bolt-nut :class 'bolt-nut-class
-                  nut-hole-diameter ^^bolt-hole-width
-                  nut-bolt-distance ^^bolt-to-nut-distance
-                  orientation (list
-                               (rotate 90 '(0 -1 0))
-                               (translate (list                                          
-                                           (- (* ^^pipe-radius 0.8))
-                                           (/ ^^shim-width 2)
-                                           (/ (- ^^pipe-center-to-top-baseplate ^^pipe-radius) 2)
-                                           )
-                                          )
-                               )
-                  )
-              )
-  )
 
 (define-class top-cradle-class
   :inherit-from (union-object)
@@ -1488,6 +1312,196 @@
                )
   )
 
+(define-class shims-class
+  :inherit-from (graphic-object)
+  :properties(
+              pipe-diameter (default 0.5)
+              thickness (default (/ ^pipe-diameter 40))
+              pipe-radius (/ ^pipe-diameter 2)
+              contact-shims-pipe-angle (default 60)
+              angle (/ ^contact-shims-pipe-angle 2)
+              pipe-center-to-top-baseplate (default (/ (* ^pipe-radius 3) 2))
+              point4z (* (* ^pipe-radius 0.6) (sind ^angle))
+              point-list (list
+                          (list (- (* ^pipe-radius 0.8) (+ ^thickness 0.00001)) 0.0 0.0)
+                          (list (* ^pipe-radius 0.2) 0.0 0.0)
+                          (list (* ^pipe-radius 0.2) 0.0 (- ^pipe-center-to-top-baseplate ^pipe-radius))
+                          (list (* ^pipe-radius 0.8) 0.0 (+ (- ^pipe-center-to-top-baseplate ^pipe-radius) ^point4z))
+                          (list (* ^pipe-radius 0.8) 0.0 0.0)
+                          )
+              bolt-hole-width (default (* ^thickness 0.6))
+              bolt-height (* ^pipe-radius 0.8)
+              bolt-to-nut-distance (default (* 2 (* ^pipe-radius 0.8)))
+              shim-width (/ ^pipe-diameter 6)
+              
+              input-origin-pos (list 3.0 2.0 1.0)
+              pipe-direction (list 0.0 1.0 0.0)
+              pipe-up-direction (list 0.0 0.0  1.0)
+              pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
+              reference-coordinate-system (default nil)
+              )              
+  :subobjects(
+              (shims-global-coordinate-system :class 'coordinate-system-class
+                  origin (list 0 0 0)
+                  reference-coordinate-system ^^reference-coordinate-system
+                  )
+              (lines :class 'polyline-object
+                  vertices ^^point-list
+                  reference-coordinate-system ^^shims-global-coordinate-system
+                  )
+              (frame :class 'extrusion-object
+                  swept-object ^lines
+                  vector ^^pipe-direction
+                  distance ^^shim-width
+                  solid? t
+                  )
+              (right-shim :class 'surface-thickened-class
+                  source-object ^frame
+                  back-thickness ^^thickness
+                  )
+              (left-shim :class 'mirror-object
+                  source-object ^right-shim
+                  basis-vector (list ^^pipe-direction ^^pipe-up-direction)
+                  point-on-mirror ^^input-origin-pos    
+               )
+
+              (shim :class 'assembly-object
+                  object-list(list (the right-shim) (the left-shim))
+                  )
+              (bolt-nut :class 'bolt-nut-class
+                  nut-hole-diameter ^^bolt-hole-width
+                  nut-bolt-distance ^^bolt-to-nut-distance
+                  orientation (list
+                               (rotate 90 '(0 -1 0))
+                               (translate (list                                          
+                                           (- (* ^^pipe-radius 0.8))
+                                           (/ ^^shim-width 2)
+                                           (/ (- ^^pipe-center-to-top-baseplate ^^pipe-radius) 2)
+                                           )
+                                          )
+                               )
+                  reference-coordinate-system ^^shims-global-coordinate-system
+                  )
+              )
+  )
+
+(define-class pipe-support-pipe-class
+  :inherit-from (position-object)
+  :properties (
+               ;;Width: X Height: Y Depth: Z
+               
+               
+               ;;USER INPUTS;;
+               
+               input-origin-pos (default (list 0.0 0.0 0.0))
+               pipe-direction (default (list 0.0 1.0 0.0))
+               pipe-up-direction(default (list 0.0 0.0 1.0))
+               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
+               ;;Pipe radius
+               outer-pipe-radius (default 1)
+               ;;Clearance between pipe and base-plate
+               clearance (default 0)
+
+
+ 
+               ;;BACKEND PROPERTIES;;
+               ;;Ubeam
+               ubeam-pipe-gap (* ^outer-pipe-radius 0.05)
+               ubeam-radius 0.0
+               ubeam-height 0.0
+
+               ;;Base properties
+               base-height ^base-plate-height
+               base-depth (* ^outer-pipe-radius 0.5)
+               base-width (* ^outer-pipe-radius 3)
+               
+               ;;Base-plate properties
+               base-plate-height (* (+ ^outer-pipe-radius ^ubeam-thickness) 1.5)
+               base-plate-depth (* ^outer-pipe-radius 0.05)
+               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 2.2) 
+               
+
+               ;;Ubeam properties
+               ubeam-angle (default 180)
+               ubeam-thickness (* ^outer-pipe-radius 0.05)
+               ubeam-outer-diameter (* ^outer-pipe-radius 0.05)
+
+               ;;Ubeam pipe properties
+               pipe-diameter ^ubeam-outer-diameter
+               pipe-height (* ^outer-pipe-radius 1.4)
+
+               ;;Base-type
+               base-type (default base-ibeam-class)
+               base-size1 (* ^outer-pipe-radius 4.41)
+
+               
+               )
+  
+  :subobjects (
+               (global-coordinate-system :class 'coordinate-system-class
+                   origin ^^input-origin-pos
+                   vector-j ^^pipe-direction
+                   vector-i ^^pipe-x-direction
+                   )
+               (ubeam1-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
+                   reference-coordinate-system ^^global-coordinate-system
+                   )
+               (ubeam1 :class 'ubeam-class
+                   elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
+                   thickness ^^ubeam-thickness
+                   outer-diameter ^^ubeam-outer-diameter
+                   outer-pipe-radius ^^outer-pipe-radius
+                   ubeam-pipe-gap ^^ubeam-pipe-gap
+                   pipe-height ^^pipe-height
+                   base-depth ^^base-depth
+                   diameter ^^pipe-diameter
+                   reference-coordinate-system ^^ubeam1-coordinate-system
+                   )
+               (ubeam2-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 (* ^^outer-pipe-radius -0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
+                   reference-coordinate-system ^^global-coordinate-system
+                   )
+               (ubeam2 :class 'ubeam-class
+                   elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
+                   thickness ^^ubeam-thickness
+                   outer-diameter ^^ubeam-outer-diameter
+                   outer-pipe-radius ^^outer-pipe-radius
+                   ubeam-pipe-gap ^^ubeam-pipe-gap
+                   pipe-height ^^pipe-height
+                   base-depth ^^base-depth
+                   diameter ^^pipe-diameter
+                   reference-coordinate-system ^^ubeam2-coordinate-system
+                   )
+               
+               (base-plate-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
+                   reference-coordinate-system ^^global-coordinate-system
+                   )
+               (base-plate :class 'box-object
+                   height ^^base-plate-height
+                   depth ^^base-plate-depth
+                   width ^^base-plate-width
+                   reference-coordinate-system ^^base-plate-coordinate-system
+                   )
+
+
+               (pipe-support-v1-shims-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 (-(* (/ ^^base-plate-height 2) 0.95)) 0.0)
+                   reference-coordinate-system ^^global-coordinate-system
+                   )
+               (pipe-support-v1-shims :class 'shims-class
+                   pipe-diameter (* ^^outer-pipe-radius 2)
+                   shim-width (* ^^base-plate-height 0.95)
+                   input-origin-pos ^^input-origin-pos
+                   pipe-direction ^^pipe-direction
+                   pipe-up-direction ^^pipe-up-direction
+                   pipe-x-direction ^^pipe-x-direction
+                   reference-coordinate-system ^^pipe-support-v1-shims-coordinate-system
+                )
+  )
+  )
+
 (define-class pipe-support-flat-class
   :inherit-from (object)
   :properties (
@@ -1496,9 +1510,9 @@
                ;;Depth Z
                
                ;;USER INPUTS
-               input-origin-pos (list 2.0 2.0 2.0)
-               pipe-direction (list 0 0 1)
-               pipe-up-direction (list 0 1 0)
+               input-origin-pos (list 0.0 0.0 0.0)
+               pipe-direction (list 0 1 0)
+               pipe-up-direction (list 0 0 1)
                pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
                
                ;;Pipe properties
@@ -1516,7 +1530,7 @@
                ;;Base-plate properties
                base-plate-height (* (+ ^outer-pipe-radius ^ubeam-thickness) 1.05)
                base-plate-depth (* ^outer-pipe-radius 0.05)
-               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 2.2) 
+               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 3.4) 
                
 
                ;;Ubeam properties
@@ -1555,7 +1569,7 @@
                    )
                (ubeam3-coordinate-system :class 'coordinate-system-class
                    vector-j '(0 0 1)
-                   origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
+                   origin (list 0.0 (* ^^outer-pipe-radius 0.45) ^^outer-pipe-radius)
                    reference-coordinate-system ^^global-coordinate-system
                    )
                (ubeam1 :class 'flat-ubeam-class
@@ -1575,7 +1589,7 @@
                (triangle :class 'extrusion-object
                    swept-object ^triangle1
                    vector '(0 1 0)
-                   distance (/ (* ^^base-plate-height 1.6) 2)
+                   distance (/ (* ^^base-plate-height 1.3) 2)
                    (triangle1 :class 'triangle-class
                               vertices (list
                                         (list 0.0 0.0 0.0)
@@ -1585,7 +1599,7 @@
                                         )
                               distance ^^base-plate-depth
                               orientation (list
-                                           (translate (list (+ ^^outer-pipe-radius ^^ubeam-pipe-gap) (-(* ^^outer-pipe-radius 0.4)) (* ^^outer-pipe-radius 0.05))))
+                                           (translate (list (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) (-(* ^^outer-pipe-radius 0.35)) 0.0)))
                               )
                    reference-coordinate-system ^^global-coordinate-system
                    )
@@ -1595,24 +1609,40 @@
                    point-on-mirror ^^input-origin-pos
                   ;; reference-coordinate-system ^^global-coordinate-system
                    )
-               
-               (lower-pipe-support :class 'extrusion-object
-                   outer-radius ^outer-pipe-radius
-                   vector '(0 1 0)
-                   distance (/ (* ^^base-plate-height 1.6) 2)
-                   orientation (list
-                                (translate (list (* ^^outer-pipe-radius 0.9) (-(/ (* ^^base-plate-height 0.8) 2)) (+ ^^base-plate-depth (* ^^outer-pipe-radius 0.2))))
-                                )
-                   swept-object ^lower-pipe-support1
-                   (lower-pipe-support1 :class 'lower-support-class)
-                    reference-coordinate-system ^^global-coordinate-system
-                    )
-               (lower-pipe-mirror :class 'mirror-object
-                   source-object ^^lower-pipe-support
-                   basis-vector (list ^^pipe-direction ^^pipe-up-direction)
-                   point-on-mirror ^^input-origin-pos
-                  ;; reference-coordinate-system ^^global-coordinate-system
+
+               (pipe-support-v1-shims-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 (-(* (/ ^^base-plate-height 2) 0.95)) 0.0)
+                   reference-coordinate-system ^^global-coordinate-system
                    )
+               (pipe-support-v1-shims :class 'shims-class
+                   pipe-diameter (* ^^outer-pipe-radius 2)
+                   shim-width (* ^^base-plate-height 0.95)
+                   input-origin-pos ^^input-origin-pos
+                   pipe-direction ^^pipe-direction
+                   pipe-up-direction ^^pipe-up-direction
+                   pipe-x-direction ^^pipe-x-direction
+                   reference-coordinate-system ^^pipe-support-v1-shims-coordinate-system
+                )
+
+
+               ;;Gammel shims
+               ;;; (lower-pipe-support :class 'extrusion-object
+;;;                    outer-radius ^outer-pipe-radius
+;;;                    vector '(0 1 0)
+;;;                    distance (/ (* ^^base-plate-height 1.6) 2)
+;;;                    orientation (list
+;;;                                 (translate (list (* ^^outer-pipe-radius 0.9) (-(/ (* ^^base-plate-height 0.8) 2)) (+ ^^base-plate-depth (* ^^outer-pipe-radius 0.2))))
+;;;                                 )
+;;;                    swept-object ^lower-pipe-support1
+;;;                    (lower-pipe-support1 :class 'lower-support-class)
+;;;                     reference-coordinate-system ^^global-coordinate-system
+;;;                     )
+;;;                (lower-pipe-mirror :class 'mirror-object
+;;;                    source-object ^^lower-pipe-support
+;;;                    basis-vector (list ^^pipe-direction ^^pipe-up-direction)
+;;;                    point-on-mirror ^^input-origin-pos
+;;;                   ;; reference-coordinate-system ^^global-coordinate-system
+;;;                    )
                 )
   )
 
