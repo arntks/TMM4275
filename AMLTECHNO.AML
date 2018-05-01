@@ -1819,48 +1819,5 @@
     )
   )
 
-(define-class test-editable-data-property-class
-  :inherit-from(point-object data-model-node-mixin)
-  :properties(
-              (coordinates :class 'editable-data-property-class
-                  label "Coordinates"
-                  formula '(0 0 0)
-                  interactive-method '(select-point-method ("Select a Point" "Select another Point"))
-                  )
-              property-objects-list (list
-                                     (list (the superior coordinates self)
-                                           '(apply-formula? t))
-                                     )
-              )
-  )
-(define-method select-point-method editable-data-property-class (option)
-  (message-box "Message" (format nil "select-point-method called with option = ~a" option))
-  (select-a-point-method)
-  )
 
 
-
-
-(define-class point-class
-  :inherit-from(point-object)
-  :properties(
-              (coordinates :class 'interactive-data-property-class
-                  formula '(0.0 0.0 0.0)
-                  interactive-method 'interactive-select-point
-                  )
-              )
-  )
-;; Assumption:
-;; The functions select-a-point-from-graphics-window and select-a-point-frommenu are user functions.
-;; They return a list of the '(x y z) coordinates of a point
-(define-method interactive-select-point interactive-data-property-class
-  (button-index)
-  (case button-index
-    (1 (let ((point-coords (select-a-point-from-graphics-window))
-             )
-         (when point-coords (list point-coords nil))))
-    (3 (let ((point-coords (select-a-point-from-menu))
-             )
-         (when point-coords (list point-coords nil))))
-    )
-  )
