@@ -699,7 +699,7 @@
   :properties(
               pipe-diameter (default 0.5)
               pipe-radius (/ ^pipe-diameter 2)
-              clamp-tilt-angle (default 30)
+              clamp-tilt-angle (default 0)
               clamp-width ^pipe-diameter
               support-thickness (default (/ ^pipe-diameter 40))
               base-plate-length (default ^clamp-width)
@@ -707,12 +707,12 @@
               pipe-center-to-bottom-baseplate (default (* ^pipe-diameter 0.7))
               outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
              
-
+              ;;Cradle tilt-angle 
               tilt-angle (default 0)
               
               ;;RIBS
               number-of-ribs (default 3)
-              rib-angle (default 180)             
+              rib-angle (default 90)             
               rib-thickness (default ^support-thickness)
               rib-width (default ^base-plate-width)
               rib-depth (default ^base-plate-length)
@@ -817,148 +817,7 @@
 
 
 
-;;;  Old cradle-with-rib-support-class. New upated class is over
-;;; (define-class cradle-with-rib-support-tilt-class
-;;;   :inherit-from (assembly-object)
-;;;   :properties(
-;;;               pipe-diameter (default 0.5)
-;;;               pipe-radius (/ ^pipe-diameter 2)
-;;;               clamp-tilt-angle (default 30)
-;;;               clamp-width ^pipe-diameter
-;;;               support-thickness (default (/ ^pipe-diameter 40))
-;;;               base-plate-lenght (default ^clamp-width)
-;;;               base-plate-width (default ^clamp-width)
-;;;               pipe-center-to-bottom-baseplate (default (* ^pipe-diameter 0.7))
-;;;               outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
-;;;               tilt-angle (default 30)
 
-;;;               view (default 'fea);;or FEA
-;;;               heigth-rib-1-3-fea (- ^pipe-center-to-bottom-baseplate (- (* ^outer-radius-of-clamp (cosd 30)) (/ ^support-thickness 2)))
-;;;               heigth-rib-1-3-bom (- ^pipe-center-to-bottom-baseplate (+ (* ^outer-radius-of-clamp (cosd 30)) (/ ^support-thickness 3)))
-;;;               object-list (list (the pipe-support))
-
-;;;               )
-;;;   :subobjects (
-;;;                (clamp :class 'top-cradle-class
-;;;                    pipe-diameter ^^pipe-diameter
-;;;                    orientation (list
-;;;                                 (rotate (- 180 ^^tilt-angle) '(0 1 0))
-;;;                                 (translate (list 0 0 ^^pipe-center-to-bottom-baseplate))                                
-;;;                                 )
-;;;                    display? nil
-;;;                    )
-;;;                (baseplate :class 'box-object
-;;;                    height ^^base-plate-lenght
-;;;                    width ^^base-plate-width
-;;;                    depth ^^support-thickness
-;;;                    display? nil
-;;;                    )
-;;;                (support-line1 :class 'line-object
-;;;                    point1 (list (- (* ^^outer-radius-of-clamp (sind 30))) 0 0)
-;;;                    point2 (list (- (* ^^outer-radius-of-clamp (sind 30))) 0 (if (equal ^^view 'bom)
-;;;                                                                                 ^^heigth-rib-1-3-bom
-;;;                                                                               ^^heigth-rib-1-3-fea
-;;;                                                                               )
-;;;                                 )
-                                                                              
-;;;                    display? nil
-;;;                    )
-;;;                (support-line2 :class 'line-object
-;;;                    point1 (list 0 0 0)
-;;;                    point2 (list 0 0 (if (equal ^^view 'bom)
-;;;                                         (- ^^pipe-center-to-bottom-baseplate ^^outer-radius-of-clamp)
-;;;                                       (- ^^pipe-center-to-bottom-baseplate (- ^^outer-radius-of-clamp ^^support-thickness))
-;;;                                 ))
-;;;                    display? nil
-;;;                    )
-;;;                (support-line3 :class 'line-object
-;;;                    point1 (list (* ^^outer-radius-of-clamp (sind 30)) 0 0)
-;;;                    point2 (list (+ (* ^^outer-radius-of-clamp (sind 30))) 0 (if (equal ^^view 'bom)
-;;;                                                                                 ^^heigth-rib-1-3-bom
-;;;                                                                               ^^heigth-rib-1-3-fea
-;;;                                                                               )
-;;;                                 )
-                   
-;;;                    display? nil
-;;;                    )
-;;;                (support-surface1 :class 'extrusion-object
-;;;                    swept-object ^support-line1
-;;;                    vector '(0.0 10.0 0.0)
-;;;                    distance ^^clamp-width
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support-surface2 :class 'extrusion-object
-;;;                    swept-object ^support-line2
-;;;                    vector '(0.0 10.0 0.0)
-;;;                    distance ^^clamp-width
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support-surface3 :class 'extrusion-object
-;;;                    swept-object ^support-line3
-;;;                    vector '(0.0 10.0 0.0)
-;;;                    distance ^^clamp-width
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support1-1 :class 'extrusion-object
-;;;                    swept-object ^support-surface1
-;;;                    vector '(10.0 0.0 0.0)
-;;;                    distance (/ ^^support-thickness 2)
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support2-1 :class 'extrusion-object
-;;;                    swept-object ^support-surface2
-;;;                    vector '(10.0 0.0 0.0)
-;;;                    distance (/ ^^support-thickness 2)
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support3-1 :class 'extrusion-object
-;;;                    swept-object ^support-surface3
-;;;                    vector '(10.0 0.0 0.0)
-;;;                    distance (/ ^^support-thickness 2)
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support1-2 :class 'extrusion-object
-;;;                    swept-object ^support-surface1
-;;;                    vector '(-10.0 0.0 0.0)
-;;;                    distance (/ ^^support-thickness 2)
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support2-2 :class 'extrusion-object
-;;;                    swept-object ^support-surface2
-;;;                    vector '(-10.0 0.0 0.0)
-;;;                    distance (/ ^^support-thickness 2)
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support3-2 :class 'extrusion-object
-;;;                    swept-object ^support-surface3
-;;;                    vector '(-10.0 0.0 0.0)
-;;;                    distance (/ ^^support-thickness 2)
-;;;                    solid? t
-;;;                    display? nil
-;;;                    )
-;;;                (support-ribs :class 'union-object
-;;;                    object-list (list (the support1-1) (the support2-1) (the support3-1) (the support1-2) (the support2-2) (the support3-2))
-;;;                    orientation (list (translate (list 0 (- (/ ^^clamp-width 2)) 0)))
-;;;                    display? nil
-
-;;;                    )
-;;;                (pipe-support :class (case ^view
-;;;                                       ('fea 'union-object)
-;;;                                       ('bom 'assembly-object)
-;;;                                       )
-;;;                    object-list (list (the baseplate) (the support-ribs) (the clamp))
-;;;                    display? nil
-;;;                    )
-;;;                )
-;;;   )
 
 (define-class pipe-support-cradle-with-tilt-style-01-class
   :inherit-from (assembly-object data-model-node-mixin)
@@ -988,10 +847,7 @@
                   formula 0.1)             
               pipe-radius (/ ^pipe-diameter 2)
               pipe-center-to-bottom-baseplate (default ^pipe-diameter)
-              (tilt-angle :class 'editable-data-property-class
-                  formula 30
-                  label "Tilt angle: "
-                  )
+              tilt-angle (default 0)
               nut-bolt-distance (* (* ^pipe-radius (sind 14)) 2)
               flip-lenght (/ ^pipe-radius 4)
 
@@ -1000,7 +856,17 @@
               nut-height (* ^nut-hole-diameter 0.9)
               head-height ^nut-height
 
-              view (default 'bom);;fea or bom
+             
+
+
+              ;;Rib
+              number-of-ribs (default 2)
+              view (default 'fea);;fea or bom
+              rib-angle (default 90)
+              
+              
+
+              
               )
   :subobjects (
                ;;Changes;;;;
@@ -1008,12 +874,13 @@
                    origin ^^input-origin-pos
                    vector-j ^^pipe-direction
                    vector-i ^^pipe-x-direction
+                   display? nil
                    )
                ;; End changes;;;
                (cradle-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
                    reference-coordinate-system ^^pipe-reference-coordinate-system
-                   display? t
+                   display? nil
                    )
                (cradle-bottom :class 'cradle-with-rib-support-tilt-class
                    pipe-diameter ^^pipe-diameter
@@ -1021,6 +888,7 @@
                    view ^^view
                    pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
                    reference-coordinate-system ^^cradle-coordinate-system
+                   rib-angle ^^rib-angle
                    )
                (cradle-top :class 'top-cradle-class
                    pipe-diameter ^^pipe-diameter
@@ -1988,9 +1856,7 @@
                                                         "insulated-pipe"
                                                         "regular-pipe")
                                                        )
-                  )
-                                    
-                  
+                  )                                                         
               (pipe-outer-diameter :class 'editable-data-property-class
                   formula 0.5
                   label "Pipe outer Diameter"
@@ -2008,6 +1874,41 @@
                               )
                   display? t
                   )
+
+               (tilt-angle :class 'editable-data-property-class
+                  formula 0
+                  lable "Cradle angle: "
+                )
+               (number-of-ribs :class 'editable-data-property-class
+                   formula 3
+                   lable "Number of ribs: "
+                   )
+               (rib-angle :class 'editable-data-property-class
+                   formula 90
+                   lable "Rib angle: "
+                   eidtable? (case !support-type
+                               ('cradle t)
+                               (t nil)
+                               )
+                   
+                   )
+               (view :class 'editable-data-property-class
+                   formula "FEA"
+                   lable "View: "
+                   interactive-method '(choosing-view-method(
+                                                             "FEA"
+                                                             "BOM"
+                                                             )
+                                                            )
+                   )
+               
+                                                                                     
+
+                  
+
+
+               
+              
 
               )
                   
@@ -2035,14 +1936,41 @@
                                 )
                   pipe-diameter ^^pipe-outer-diameter
                   pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
-                  view 'fea
+
+                  
                   input-origin-pos ^^input-origin-pos
                   pipe-direction ^^pipe-direction
                   pipe-up-direction ^^pipe-up-direction
 
+                  view ^^view
+
+
                   )
               )
   )
+
+(define-method choosing-view-method editable-data-property-class (index)
+  (case index
+    (1
+     (change-value !view 'fea)
+     (list 'fea)
+     )
+    (2
+     (change-value !view 'bom)
+     (list 'bom)
+     )
+    (t
+     (change-value !view 'fea)
+     (list 'fea)
+     )
+    )
+  )
+  
+     
+     
+
+
+  
 
 (define-method choosing-support-type-method editable-data-property-class (index)
   (case index
