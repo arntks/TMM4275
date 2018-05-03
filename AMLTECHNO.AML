@@ -1248,7 +1248,7 @@
               )
   :subobjects (
                ;;Changes;;;;
-               (pipe-reference-coordinate-system :class 'coordinate-system-class
+               (pipe-roller-reference-coordinate-system :class 'coordinate-system-class
                    origin ^^input-origin-pos
                    vector-j ^^pipe-direction
                    vector-i ^^pipe-x-direction
@@ -1256,7 +1256,7 @@
                ;; End changes;;;
                (roller-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
+                   reference-coordinate-system ^^pipe-roller-reference-coordinate-system
                    display? t
                    )
 ;;;                (pipe :class 'pipe-object
@@ -1327,7 +1327,7 @@
                    object-list (list (the support1-1) (the support3-1) (the support1-2) (the support3-2))
                    orientation (list (translate (list 0 (- (/ ^^clamp-width 2)) 0)))
                    display? nil
-                   reference-coordinate-system ^^roller-coordinate-system
+                   ;;reference-coordinate-system ^^roller-coordinate-system
                    )
                (roller1 :class 'roller-class
                    pipe-diameter ^^pipe-diameter
@@ -1401,6 +1401,7 @@
               (shims-global-coordinate-system :class 'coordinate-system-class
                   origin (list 0 0 0)
                   reference-coordinate-system ^^reference-coordinate-system
+                  display? nil
                   )
               (lines :class 'polyline-object
                   vertices ^^point-list
@@ -1527,6 +1528,7 @@
                (ubeam1-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
                    reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
                (ubeam1 :class 'ubeam-class
                    elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
@@ -1538,10 +1540,12 @@
                    base-depth ^^base-depth
                    diameter ^^side-pipe-diameter
                    reference-coordinate-system ^^ubeam1-coordinate-system
+                   display? nil
                    )
                (ubeam2-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 (* ^^outer-pipe-radius -0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
                    reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
                (ubeam2 :class 'ubeam-class
                    elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
@@ -1558,6 +1562,7 @@
                (base-plate-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
                    reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
                (base-plate :class 'box-object
                    height ^^base-plate-height
@@ -1570,6 +1575,7 @@
                (pipe-support-v1-shims-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 (-(* (/ ^^base-plate-height 2) 0.95)) 0.0)
                    reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
                (pipe-support-v1-shims :class 'shims-class
                    pipe-diameter (* ^^outer-pipe-radius 2)
@@ -1675,6 +1681,7 @@
                    vector-j '(0 0 1)
                    origin (list 0.0 (* ^^outer-pipe-radius 0.45) (+ ^^outer-pipe-radius ^^thickness))
                    reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
                (ubeam1 :class 'flat-ubeam-class
                    base-height ^^base-plate-height
@@ -1717,6 +1724,7 @@
                (pipe-support-v1-shims-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 (-(* (/ ^^base-plate-height 2) 0.95)) 0.0)
                    reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
                (pipe-support-v1-shims :class 'shims-class
                    pipe-diameter (* ^^outer-pipe-radius 2)
