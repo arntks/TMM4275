@@ -838,7 +838,7 @@
   )
 
 (define-class pipe-support-cradle-with-tilt-style-01-class
-  :inherit-from (assembly-object)
+  :inherit-from (assembly-object data-model-node-mixin)
   :properties(
               ;;Pipe Direction New;;;;
               input-origin-pos (default (list 1.0 1.0 1.0))
@@ -852,7 +852,10 @@
                   formula 0.1)             
               pipe-radius (/ ^pipe-diameter 2)
               pipe-center-to-bottom-baseplate (default ^pipe-diameter)
-              tilt-angle (default 30)
+              (tilt-angle :class 'editable-data-property-class
+                  formula 30
+                  label "Tilt angle: "
+                  )
               nut-bolt-distance (* (* ^pipe-radius (sind 14)) 2)
               flip-lenght (/ ^pipe-radius 4)
 
@@ -1191,15 +1194,19 @@
   )
 
 (define-class pipe-support-roller-style-01-class;;roller
-  :inherit-from (union-object)
+  :inherit-from (union-object data-model-node-mixin)
   :properties(
               ;;Pipe Direction New;;;;
-              input-origin-pos (default (list 1.0 1.0 1.0))
+              input-origin-pos (default (list 0 0 0))
               pipe-direction (list 0 1 0)
               pipe-up-direction (list 0 0 1)
               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
               ;;;;;;;;;;;
-              pipe-diameter (default 0.5)
+       
+              (pipe-diameter :class 'editable-data-property-class
+                  formula 0.5
+                  label "pipe-diameter: "
+                  )
               pipe-radius (/ ^pipe-diameter 2)
               core-diameter (/ ^pipe-radius 11)
               roller-core-width ^pipe-radius
@@ -1208,31 +1215,34 @@
               support-thickness (default (/ ^pipe-diameter 32))
               base-plate-lenght (default ^clamp-width)
               base-plate-width (default ^clamp-width)
-              pipe-center-to-bottom-baseplate (default ^pipe-diameter)
+              (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+                  formula ^pipe-diameter
+                  label "pipe center to baseplate: "
+                  )
               outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
               object-list (list (the baseplate) (the support-ribs) (the rollers))
-              reference-coordinate-system (the cradle-reference-coordinate-system)
+              reference-coordinate-system (the cradle-coordinate-system)
                             
               )
   :subobjects (
                ;;Changes;;;;
-               (cradle-reference-coordinate-system :class 'coordinate-system-class
+               (pipe-reference-coordinate-system :class 'coordinate-system-class
                    origin ^^input-origin-pos
                    vector-j ^^pipe-direction
                    vector-i ^^pipe-x-direction
                    )
                ;; End changes;;;
-               (pipe-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 ^^pipe-center-to-bottom-baseplate)
-                   reference-coordinate-system ^^cradle-reference-coordinate-system
+               (cradle-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
+                   reference-coordinate-system ^^pipe-reference-coordinate-system
                    display? t
                    )
-               (pipe :class 'pipe-object
-                   outer-diameter ^^pipe-diameter
-                   thickness 0.05
-                   orientation (list (rotate 90 '(1 0 0)))
-                   reference-coordinate-system ^^pipe-coordinate-system
-                   )
+;;;                (pipe :class 'pipe-object
+;;;                    outer-diameter ^^pipe-diameter
+;;;                    thickness 0.05
+;;;                    orientation (list (rotate 90 '(1 0 0)))
+;;;                    reference-coordinate-system ^^pipe-coordinate-system
+;;;                    )
                (baseplate :class 'box-object
                    height ^^base-plate-lenght
                    width ^^base-plate-width
@@ -1336,6 +1346,7 @@
                )
   )
 
+  
 (define-class shims-class
   :inherit-from (graphic-object)
   :properties(
@@ -1746,11 +1757,15 @@
 (define-class pipe-support-with-class
   :inherit-from (data-model-node-mixin)
   :properties(
-              input-origin-pos (default (list 0.0 1.0 1.0))
+              input-origin-pos (default (list 0 0 0))
               pipe-direction (list 0 1 0)
               pipe-up-direction (list 0 0 1)
               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
-
+              
+              (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+                  formula 0.5
+                  label "pipe center to baseplate: "
+                  )
               (support-type :class 'editable-data-property-class
                   formula "none"
                   label "Support type: "
@@ -1771,7 +1786,7 @@
                                     
                   
               (pipe-outer-diameter :class 'editable-data-property-class
-                  formula "6"
+                  formula 0.5
                   label "Pipe outer Diameter"
                   editable? (case !pipe-view
                               ('regular-pipe t)
@@ -1785,16 +1800,24 @@
                               ('insulated-pipe t)
                               (t nil)
                               )
+                  display? t
                   )
 
               )
                   
   :subobjects(
               (pipe :class (case !pipe-view
-                             ('insulated-pipe 'insulated-pipe-class);;Må endre skrivefeil
+                             ('insulated-pipe 'insulated-pipe-class)
                              ('regular-pipe 'pipe-object)
                              (t 'null-object))
                   insulation-layer-list ^^insulation-layers
+                  outer-diameter ^^pipe-outer-diameter
+                  orientation (rotate 90 (case !pipe-view
+                                           ('regular-pipe '(1 0 0))
+                                           ('insulated-pipe '(1 0 0))
+                                           (t '(0 0 0))
+                                           ))
+
                   )
               
               (support :class (case !support-type
@@ -1803,6 +1826,7 @@
                                 (t 'null-object)
                                 )
                   pipe-diameter ^^pipe-outer-diameter
+                  pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
                   view 'fea
 
                   )
@@ -1813,6 +1837,11 @@
   (case index
     (1
      (change-value !support-type 'cradle)
+     ;;Dette er et forsøk på å hente ut ytterste lag av isolasjon radius slik at man kan skalere support
+;;;      (change-value !pipe-outer-diameter (case !pipe-view
+;;;                                           ('insulated-pipe (the total-diameter (:from pipe)))
+;;;                                           (t !pipe-outer-diameter)
+;;;                                           ))
      (list 'cradle))
     (2
      (change-value !support-type 'roller)
