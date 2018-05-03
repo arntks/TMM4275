@@ -1754,7 +1754,7 @@
     )
   )
 
-(define-class pipe-support-with-class
+(define-class pipe-support-master-class
   :inherit-from (data-model-node-mixin)
   :properties(
               input-origin-pos (default (list 0 0 0))
