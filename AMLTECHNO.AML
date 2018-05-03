@@ -129,14 +129,17 @@
                (ubeam-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 0.0)
                    reference-coordinate-system ^^reference-coordinate-system
+                   display? nil
                    )
                (ubeam-pipe-right-coordinate-system :class 'coordinate-system-class
                    origin (list (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) 0.0 (-(/ ^^pipe-height 2))) 
                    reference-coordinate-system ^^ubeam-coordinate-system
+                   display? nil
                    )
                (ubeam-pipe-left-coordinate-system :class 'coordinate-system-class
                    origin (list (-(+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))) 0.0 (-(/ ^^pipe-height 2))) 
                    reference-coordinate-system ^^ubeam-coordinate-system
+                   display? nil
                    )
                (ubeam :class 'pipe-elbow-object
                  angle ^^ubeam-angle
@@ -207,14 +210,17 @@
               (ubeam-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 0.0)
                    reference-coordinate-system ^^reference-coordinate-system
+                   display? nil
                    )
               (pipe-coordinate-system :class 'coordinate-system-class
                   origin (list (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) 0.0 0.0)
                    reference-coordinate-system ^^ubeam-coordinate-system
+                   display? nil
                    )
               (lower-pipe-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 (-^^outer-pipe-radius) 0.0)
                    reference-coordinate-system ^^pipe-coordinate-system
+                   display? nil
                    )
               (flat-ex :class 'extrusion-object
                   swept-object ^flat-ubeam1
@@ -1444,7 +1450,7 @@
   )
 
 (define-class pipe-support-pipe-class
-  :inherit-from (position-object)
+  :inherit-from (union-object data-model-node-mixin);;position
   :properties (
                ;;Width: X Height: Y Depth: Z
                
@@ -1473,10 +1479,10 @@
                    )
                outer-pipe-radius (/ ^pipe-diameter 2)
 
-               (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
-                  formula ^pipe-diameter
-                  label "pipe center to baseplate: "
-                  )
+              ;;;  (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+;;;                   formula ^pipe-diameter
+;;;                   label "pipe center to baseplate: "
+;;;                   )
 
                
                
@@ -1540,7 +1546,6 @@
                    base-depth ^^base-depth
                    diameter ^^side-pipe-diameter
                    reference-coordinate-system ^^ubeam1-coordinate-system
-                   display? nil
                    )
                (ubeam2-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 (* ^^outer-pipe-radius -0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
