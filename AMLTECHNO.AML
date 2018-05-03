@@ -1424,7 +1424,19 @@
                pipe-up-direction(default (list 0.0 0.0 1.0))
                pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
                ;;Pipe radius
-               outer-pipe-radius (default 1)
+
+               (pipe-diameter :class 'editable-data-property-class
+                   formula 0.5
+                   label "pipe-diameter: "
+                   )
+               outer-pipe-radius (/ ^pipe-diameter 2)
+
+               (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+                  formula ^pipe-diameter
+                  label "pipe center to baseplate: "
+                  )
+               
+               ;;outer-pipe-radius (default 1)
                ;;Clearance between pipe and base-plate
                clearance (default 0)
 
@@ -1453,7 +1465,7 @@
                ubeam-outer-diameter (* ^outer-pipe-radius 0.05)
 
                ;;Ubeam pipe properties
-               pipe-diameter ^ubeam-outer-diameter
+               side-pipe-diameter ^ubeam-outer-diameter
                pipe-height (* ^outer-pipe-radius 1.4)
 
                ;;Base-type
@@ -1481,7 +1493,7 @@
                    ubeam-pipe-gap ^^ubeam-pipe-gap
                    pipe-height ^^pipe-height
                    base-depth ^^base-depth
-                   diameter ^^pipe-diameter
+                   diameter ^^side-pipe-diameter
                    reference-coordinate-system ^^ubeam1-coordinate-system
                    )
                (ubeam2-coordinate-system :class 'coordinate-system-class
@@ -1496,7 +1508,7 @@
                    ubeam-pipe-gap ^^ubeam-pipe-gap
                    pipe-height ^^pipe-height
                    base-depth ^^base-depth
-                   diameter ^^pipe-diameter
+                   diameter ^^side-pipe-diameter
                    reference-coordinate-system ^^ubeam2-coordinate-system
                    )
                
@@ -1529,7 +1541,7 @@
   )
 
 (define-class pipe-support-flat-class
-  :inherit-from (object)
+  :inherit-from (union-object data-model-node-mixin)
   :properties (
                ;;Height Y
                ;;Width X
@@ -1543,7 +1555,19 @@
                
                ;;Pipe properties
               ;; pipe-height (default 10)
-               outer-pipe-radius (default 1)
+
+               (pipe-diameter :class 'editable-data-property-class
+                   formula 0.5
+                   label "pipe-diameter: "
+                   )
+               outer-pipe-radius (/ ^pipe-diameter 2)
+
+               (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+                  formula ^pipe-diameter
+                  label "pipe center to baseplate: "
+                  )
+               
+               ;;outer-pipe-radius (default 1)
                ubeam-pipe-gap (* ^outer-pipe-radius 0.05)
                ubeam-radius 0.0
                ubeam-height 0.0
@@ -1762,7 +1786,9 @@
                   label "Support type: "
                   interactive-method '(choosing-support-type-method (
                                                         "Cradle"
-                                                        "Roller")
+                                                        "Roller"
+                                                        "Flat"
+                                                        "Double")
                                                        )
                   )
               (pipe-view :class 'editable-data-property-class
@@ -1799,7 +1825,7 @@
                (number-of-ribs :class 'editable-data-property-class
                    formula 3
                    lable "Number of ribs: "
- )
+                   )
                (rib-angle :class 'editable-data-property-class
                    formula 90
                    lable "Rib angle: "
@@ -1820,24 +1846,7 @@
                    )
                
                                                                                      
-;;;                     )
-                    
 
-;;;               (rib-amount
-
-;;;                )
-
-;;;               (rib-angle
-
-;;;                )
-
-;;;               (view :class 'editable-data-property-class
-;;;                   formula "fea"
-;;;                   lable "View: "
-;;;                   interactive-method '(choosing
-
-
-;;;                   )
                   
 
 
@@ -1864,6 +1873,8 @@
               (support :class (case !support-type
                                 ('cradle 'pipe-support-cradle-with-tilt-style-01-class)
                                 ('roller 'pipe-support-roller-style-01-class)
+                                ('flat 'pipe-support-flat-class)
+                                ('double 'pipe-support-pipe-class)
                                 (t 'null-object)
                                 )
                   pipe-diameter ^^pipe-outer-diameter
@@ -1910,6 +1921,14 @@
     (2
      (change-value !support-type 'roller)
      (list 'roller))
+    (3
+     (change-value !support-type 'flat)
+     (list 'flat)
+     )
+    (4
+     (change-value !support-type 'double)
+     (list 'double)
+     )
     )
   )
 (define-method choosing-pipe-method editable-data-property-class (index)
