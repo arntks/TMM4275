@@ -964,9 +964,22 @@
   :inherit-from (assembly-object data-model-node-mixin)
   :properties(
               ;;Pipe Direction New;;;;
-              input-origin-pos (default (list 1.0 1.0 1.0))
-              pipe-direction (list 0 1 0)
-              pipe-up-direction (list 0 0 1)
+
+              (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
+              ;;input-origin-pos (default (list 1.0 1.0 1.0))
+              ;;pipe-direction (list 0 1 0)
+              ;;pipe-up-direction (list 0 0 1)
               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
               reference-coordinate-system (the clamp-reference-coordinate-system)
               ;;;;;;;;;;;
@@ -1320,9 +1333,23 @@
   :inherit-from (union-object data-model-node-mixin)
   :properties(
               ;;Pipe Direction New;;;;
-              input-origin-pos (default (list 0 0 0))
-              pipe-direction (list 0 1 0)
-              pipe-up-direction (list 0 0 1)
+
+              (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
+              
+             ;; input-origin-pos (default (list 0 0 0))
+             ;; pipe-direction (list 0 1 0)
+             ;; pipe-up-direction (list 0 0 1)
               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
               ;;;;;;;;;;;
        
@@ -1550,10 +1577,20 @@
                
                
                ;;USER INPUTS;;
+
+               (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
                
-               input-origin-pos (default (list 0.0 0.0 0.0))
-               pipe-direction (default (list 0.0 1.0 0.0))
-               pipe-up-direction(default (list 0.0 0.0 1.0))
                pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
                ;;Pipe radius
 
@@ -1567,6 +1604,8 @@
                   formula ^pipe-diameter
                   label "pipe center to baseplate: "
                   )
+
+               
                
                ;;outer-pipe-radius (default 1)
                ;;Clearance between pipe and base-plate
@@ -1680,9 +1719,19 @@
                ;;Depth Z
                
                ;;USER INPUTS
-               input-origin-pos (list 0.0 0.0 0.0)
-               pipe-direction (list 0 1 0)
-               pipe-up-direction (list 0 0 1)
+        
+               (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
                pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
                
                ;;Pipe properties
@@ -1904,11 +1953,19 @@
 (define-class pipe-support-master-class
   :inherit-from (data-model-node-mixin)
   :properties(
-              input-origin-pos (default (list 0 0 0))
-              pipe-direction (list 0 1 0)
-              pipe-up-direction (list 0 0 1)
-              pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
-              
+
+              (input-origin-pos :class 'editable-data-property-class
+                  formula (list 0 0 0)
+                  label "Origin: "
+                  )
+              (pipe-direction :class 'editable-data-property-class
+                  formula (list 0 1 0)
+                  label "Pipe direction: "
+                  )
+              (pipe-up-direction :class 'editable-data-property-class
+                  formula (list 0 0 1)
+                  label "Pipe up direction: "
+                  )
               (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
                   formula 0.5
                   label "pipe center to baseplate: "
@@ -1979,6 +2036,9 @@
                   pipe-diameter ^^pipe-outer-diameter
                   pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
                   view 'fea
+                  input-origin-pos ^^input-origin-pos
+                  pipe-direction ^^pipe-direction
+                  pipe-up-direction ^^pipe-up-direction
 
                   )
               )
