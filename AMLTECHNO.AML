@@ -730,6 +730,7 @@
                                 (bom (list ^ribs-uncut ^trimming-cylinder ^clamp ^baseplate ^trimming-box ^trimming-clamp))
                                 (t (list ^ribs-uncut ^trimming-cylinder ^clamp ^baseplate ^trimming-box))
                                 )
+              object-list (list (the clamp) (the ribs) (the baseplate))
 
               )
   :subobjects (
@@ -739,7 +740,7 @@
                                 (rotate (- 180 ^^tilt-angle) '(0 1 0))
                                 (translate (list 0 0 ^^pipe-center-to-bottom-baseplate))                                
                                 )
-                   display? t
+                   display? nil
                    )
                (trimming-clamp :class 'top-cradle-class
                    pipe-diameter ^^pipe-diameter
@@ -756,7 +757,7 @@
                            (t (+ (* ^^rib-start-point 2) ^^rib-thickness))
                            ) 
                    depth ^^support-thickness
-                   display? t
+                   display? nil
 
                    )
                (rib-single :class 'box-object
@@ -803,7 +804,7 @@
                    )     
                (ribs :class 'difference-object
                    object-list ^^rib-object-list 
-                   display? t
+                   display? nil
                    )
                
                )
@@ -840,7 +841,7 @@
               ;;pipe-direction (list 0 1 0)
               ;;pipe-up-direction (list 0 0 1)
               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
-              reference-coordinate-system (the clamp-reference-coordinate-system)
+
               ;;;;;;;;;;;
              (pipe-diameter :class 'editable-data-property-class
                   label "Pipe diameter: "
@@ -863,37 +864,40 @@
               number-of-ribs (default 2)
               view (default 'fea);;fea or bom
               rib-angle (default 90)
-              
-              
 
+              object-list (list (the cradle-bottom) (the cradle-top) (the fastning))
+              
+              reference-coordinate-system (the cradle-1-coordinate-system)
               
               )
   :subobjects (
                ;;Changes;;;;
-               (pipe-reference-coordinate-system :class 'coordinate-system-class
+               (pipe-cradle-reference-coordinate-system :class 'coordinate-system-class
                    origin ^^input-origin-pos
                    vector-j ^^pipe-direction
                    vector-i ^^pipe-x-direction
-                   display? nil
+                   length 0.1
+                   display? t
                    )
                ;; End changes;;;
-               (cradle-coordinate-system :class 'coordinate-system-class
+               (cradle-1-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
-                   display? nil
+                   reference-coordinate-system ^^pipe-cradle-reference-coordinate-system
+                   display? t
+                   length 0.1
                    )
                (cradle-bottom :class 'cradle-with-rib-support-tilt-class
                    pipe-diameter ^^pipe-diameter
                    tilt-angle ^^tilt-angle
                    view ^^view
                    pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
-                   reference-coordinate-system ^^cradle-coordinate-system
+                   reference-coordinate-system  (the cradle-1-coordinate-system)
                    rib-angle ^^rib-angle
                    )
                (cradle-top :class 'top-cradle-class
                    pipe-diameter ^^pipe-diameter
                    orientation (rotate (- ^^tilt-angle) '(0 1 0))
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
+                   ;;reference-coordinate-system ^^pipe-cradle-reference-coordinate-system
                    )
 ;;;                (isolated-pipe :class 'isolated-pipe-class
 ;;;                    pipe-diameter 0.1
@@ -969,7 +973,7 @@
                                 (translate (list 0 (- (/ (* ^^pipe-radius 4) 8)) 0))
                                 )
                    
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
+                   reference-coordinate-system ^^pipe-cradle-reference-coordinate-system
                    )
                )
   )
@@ -1239,7 +1243,7 @@
                   )
               outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
               object-list (list (the baseplate) (the support-ribs) (the rollers))
-              reference-coordinate-system (the cradle-coordinate-system)
+              reference-coordinate-system (the roller-coordinate-system)
                             
               )
   :subobjects (
@@ -1250,7 +1254,7 @@
                    vector-i ^^pipe-x-direction
                    )
                ;; End changes;;;
-               (cradle-coordinate-system :class 'coordinate-system-class
+               (roller-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
                    reference-coordinate-system ^^pipe-reference-coordinate-system
                    display? t
@@ -1323,7 +1327,7 @@
                    object-list (list (the support1-1) (the support3-1) (the support1-2) (the support3-2))
                    orientation (list (translate (list 0 (- (/ ^^clamp-width 2)) 0)))
                    display? nil
-                   ;;reference-coordinate-system ^^clamp-reference-coordinate-system
+                   reference-coordinate-system ^^roller-coordinate-system
                    )
                (roller1 :class 'roller-class
                    pipe-diameter ^^pipe-diameter
