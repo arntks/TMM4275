@@ -129,14 +129,17 @@
                (ubeam-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 0.0)
                    reference-coordinate-system ^^reference-coordinate-system
+                   display? nil
                    )
                (ubeam-pipe-right-coordinate-system :class 'coordinate-system-class
                    origin (list (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) 0.0 (-(/ ^^pipe-height 2))) 
                    reference-coordinate-system ^^ubeam-coordinate-system
+                   display? nil
                    )
                (ubeam-pipe-left-coordinate-system :class 'coordinate-system-class
                    origin (list (-(+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))) 0.0 (-(/ ^^pipe-height 2))) 
                    reference-coordinate-system ^^ubeam-coordinate-system
+                   display? nil
                    )
                (ubeam :class 'pipe-elbow-object
                  angle ^^ubeam-angle
@@ -177,7 +180,7 @@
                dimension 2
                )
   )
-
+               
 
 (define-class flat-ubeam-class
   :inherit-from (object)
@@ -197,6 +200,7 @@
                ;;Point on mirror, connected to the position input
                input-origin-pos (default (list 0.0 0.0 0.0))
                ;;
+               thickness (default (/ ^outer-pipe-radius 20))
                pipe-direction (default (list 1.0 0.0 0.0))
                pipe-up-direction(default (list 0.0 0.0 1.0))
                ;;The reference coordinate system; default set in (0.0 0.0 0.0) 
@@ -206,14 +210,17 @@
               (ubeam-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 0.0)
                    reference-coordinate-system ^^reference-coordinate-system
+                   display? nil
                    )
               (pipe-coordinate-system :class 'coordinate-system-class
                   origin (list (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) 0.0 0.0)
                    reference-coordinate-system ^^ubeam-coordinate-system
+                   display? nil
                    )
               (lower-pipe-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 (-^^outer-pipe-radius) 0.0)
                    reference-coordinate-system ^^pipe-coordinate-system
+                   display? nil
                    )
               (flat-ex :class 'extrusion-object
                   swept-object ^flat-ubeam1
@@ -223,6 +230,10 @@
                                radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
                                )
                   reference-coordinate-system ^^ubeam-coordinate-system
+                  )
+              (flat-surf :class 'surface-thickened-class
+                  source-object ^^flat-ex
+                  front-thickness ^^thickness
                   )
               (flat-pipe :class 'extrusion-object
                   swept-object ^flat-pipe1
@@ -235,10 +246,14 @@
                               )
                   reference-coordinate-system ^^pipe-coordinate-system
                   )
+              (flat-pipe-surf :class 'surface-thickened-class
+                  source-object ^flat-pipe
+                  back-thickness ^^thickness
+                  )
               (flat-pipe-mirror :class 'mirror-object
                   basis-vector (list ^^pipe-direction ^^pipe-up-direction)
                   point-on-mirror ^^input-origin-pos
-                  source-object ^^flat-pipe
+                  source-object ^^flat-pipe-surf
                   )
               (lower-flat-pipe :class 'extrusion-object
                   swept-object ^lower-pipe
@@ -250,10 +265,14 @@
                               )
                   reference-coordinate-system ^^lower-pipe-coordinate-system
                   )
+              (lower-flat-surf :class 'surface-thickened-class
+                  source-object ^lower-flat-pipe
+                  front-thickness ^^thickness
+                  )
                (lower-flat-pipe-mirror :class 'mirror-object
                   basis-vector (list ^^pipe-direction ^^pipe-up-direction)
                   point-on-mirror ^^input-origin-pos
-                  source-object ^^lower-flat-pipe
+                  source-object ^^lower-flat-surf
                   )
               
               )
@@ -358,124 +377,7 @@
     )
   )
 
-(define-class pipe-support-pipe-class
-  :inherit-from (position-object)
-  :properties (
-               ;;Width: X Height: Y Depth: Z
-               
-               
-               ;;USER INPUTS;;
-               input-origin-pos (list 3.0 3.0 3.0)
-               pipe-direction (list 1 0 0)
-               pipe-up-direction (list 0 0 1)
-               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
-               ;;Pipe radius
-               outer-pipe-radius (default 5)
-               ;;Clearance between pipe and base-plate
-               clearance (default 0)
 
-
-               
-               ;;BACKEND PROPERTIES;;
-               ;;Ubeam
-               ubeam-pipe-gap (* ^outer-pipe-radius 0.05)
-               ubeam-radius 0.0
-               ubeam-height 0.0
-
-               ;;Base properties
-               base-height ^base-plate-height
-               base-depth (* ^outer-pipe-radius 0.5)
-               base-width (* ^outer-pipe-radius 3)
-
-               ;;Base-plate properties
-               base-plate-height (* (+ ^outer-pipe-radius ^ubeam-thickness) 1.05)
-               base-plate-depth (* ^outer-pipe-radius 0.05)
-               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 2.2) 
-               
-
-               ;;Ubeam properties
-               ubeam-angle (default 180)
-               ubeam-thickness (* ^outer-pipe-radius 0.05)
-               ubeam-outer-diameter (* ^outer-pipe-radius 0.05)
-
-               ;;Ubeam pipe properties
-               pipe-diameter ^ubeam-outer-diameter
-               pipe-height (* ^outer-pipe-radius 1.4)
-
-               ;;Base-type
-               base-type (default base-ibeam-class)
-               base-size1 (* ^outer-pipe-radius 4.41)
-
-               
-               )
-  
-  :subobjects (
-               (ubeam1-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
-                   reference-coordinate-system ^^global-coordinate-system
-                   )
-               (ubeam1 :class 'ubeam-class
-                   elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
-                   thickness ^^ubeam-thickness
-                   outer-diameter ^^ubeam-outer-diameter
-                   outer-pipe-radius ^^outer-pipe-radius
-                   ubeam-pipe-gap ^^ubeam-pipe-gap
-                   pipe-height ^^pipe-height
-                   base-depth ^^base-depth
-                   diameter ^^pipe-diameter
-                   reference-coordinate-system ^^ubeam1-coordinate-system
-                   )
-               (ubeam2-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 (* ^^outer-pipe-radius -0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
-                   reference-coordinate-system ^^global-coordinate-system
-                   )
-               (ubeam2 :class 'ubeam-class
-                   elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
-                   thickness ^^ubeam-thickness
-                   outer-diameter ^^ubeam-outer-diameter
-                   outer-pipe-radius ^^outer-pipe-radius
-                   ubeam-pipe-gap ^^ubeam-pipe-gap
-                   pipe-height ^^pipe-height
-                   base-depth ^^base-depth
-                   diameter ^^pipe-diameter
-                   reference-coordinate-system ^^ubeam2-coordinate-system
-                   )
-               (global-coordinate-system :class 'coordinate-system-class
-                   origin ^^input-origin-pos
-                   vector-j ^^pipe-direction
-                   vector-i ^^pipe-x-direction
-                   )
-               (base-plate-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
-                   reference-coordinate-system ^^global-coordinate-system
-                   )
-               (base-plate :class 'box-object
-                   height ^^base-plate-height
-                   depth ^^base-plate-depth
-                   width ^^base-plate-width
-                   reference-coordinate-system ^^base-plate-coordinate-system
-                   )
-               
-               (lower-pipe-support :class 'extrusion-object
-                   outer-radius ^outer-pipe-radius
-                   vector '(0 1 0)
-                   distance (/ (* ^^base-plate-height 1.6) 2)
-                   orientation (list
-                                (translate (list (* ^^outer-pipe-radius 0.9) (-(/ (* ^^base-plate-height 0.8) 2)) (+ ^^base-plate-depth (* ^^outer-pipe-radius 0.2))))
-                                )
-                   swept-object ^lower-pipe-support1
-                   (lower-pipe-support1 :class 'lower-support-class)
-                   reference-coordinate-system ^^global-coordinate-system
-                    )
-               (lower-pipe-mirror :class 'mirror-object
-                   source-object ^^lower-pipe-support
-                   basis-vector (list ^^pipe-direction ^^pipe-up-direction)
-                   point-on-mirror ^^input-origin-pos
-                   )
-               
-
-                )
-  )
 
 
 (define-class nut-class
@@ -518,15 +420,24 @@
                )
 )
 
-(define-class isolated-pipe-class
-  :inherit-from (assembly-object)
+(define-class insulated-pipe-class
+  :inherit-from (assembly-object data-model-node-mixin)
   :properties(
               colors '(yellow yellow1 yellow2 yellow3 yellow4 yellowgreen violetred violetred1 violetred2 violetred3 violetred4)
-              pipe-diameter (default 0.1)
+              (pipe-diameter :class 'editable-data-property-class
+                  formula 0.1
+                  label "Pipe diameter: "
+                  )
+              thickness (/ ^pipe-diameter 8)
+              (pipe-thickness :class 'editable-data-property-class
+                  formula ^thickness
+                  label "Pipe thickness: "
+                  )
               length (default (* ^pipe-diameter 20))
-              isolation-layer-list (default (list '(0.2 0.05) '(0.3 0.05)))
-              number-of-isolation-layers (length ^isolation-layer-list)
-              total-diameter (nth 0 (nth (- ^number-of-isolation-layers 1) ^isolation-layer-list))
+              insulation-layer-list (default (list '(0.2 0.05) '(0.3 0.05)))
+
+              number-of-insulation-layers (length ^insulation-layer-list)
+              total-diameter (nth 0 (nth (- ^number-of-insulation-layers 1) ^insulation-layer-list))
               (object-list :class 'private-property
                   formula (remove
                            (the superior)
@@ -536,7 +447,7 @@
                             ))
                   ) 
               orientation (list (rotate 90 '(1 0 0)))
-              ctrl-pts-z (loop for i in ^isolation-layer-list collect (nth 0 i))
+              ctrl-pts-z (loop for i in ^insulation-layer-list collect (nth 0 i))
               ctrl-pts-coordinates (loop for i in ^ctrl-pts-z
                          collect (list 0.0 (/ i 2) 0.0))
               (ctrl-pts-object-list :class 'series-object
@@ -552,17 +463,17 @@
               
               (pipe :class 'pipe-object
                   outer-diameter ^^pipe-diameter
-                  thickness (/ ^^pipe-diameter 8)
+                  thickness ^^pipe-thickness
                   height ^^length
                   display? nil
                   )
-              (isolations :class 'series-object
+              (insulations :class 'series-object
                   series-prefix 'isolation
-                  quantity ^^number-of-isolation-layers
+                  quantity ^^number-of-insulation-layers
                   class-expression 'pipe-object
                   init-form '(
-                              outer-diameter (nth 0 (nth !index !isolation-layer-list))
-                              thickness (nth 1 (nth !index !isolation-layer-list))
+                              outer-diameter (nth 0 (nth !index !insulation-layer-list))
+                              thickness (nth 1 (nth !index !insulation-layer-list))
                               height (* ^^length (- 0.9 (* !index 0.1)))
                               color (nth !index !colors) 
                               display? nil
@@ -650,66 +561,7 @@
                )
   )
 
-(define-class shims-class
-  :inherit-from (graphic-object)
-  :properties(
-              pipe-diameter (default 0.5)
-              thickness (default (/ ^pipe-diameter 40))
-              pipe-radius (/ ^pipe-diameter 2)
-              contact-shims-pipe-angle (default 60)
-              angle (/ ^contact-shims-pipe-angle 2)
-              pipe-center-to-top-baseplate (default (/ (* ^pipe-radius 3) 2))
-              point4z (* (* ^pipe-radius 0.6) (sind ^angle))
-              point-list (list
-                          (list (- (* ^pipe-radius 0.8) (+ ^thickness 0.00001)) 0.0 0.0)
-                          (list (* ^pipe-radius 0.2) 0.0 0.0)
-                          (list (* ^pipe-radius 0.2) 0.0 (- ^pipe-center-to-top-baseplate ^pipe-radius))
-                          (list (* ^pipe-radius 0.8) 0.0 (+ (- ^pipe-center-to-top-baseplate ^pipe-radius) ^point4z))
-                          (list (* ^pipe-radius 0.8) 0.0 0.0)
-                          )
-              bolt-hole-width (default (* ^thickness 0.6))
-              bolt-height (* ^pipe-radius 0.8)
-              bolt-to-nut-distance (default (* 2 (* ^pipe-radius 0.8)))
-              shim-width (/ ^pipe-diameter 6)
-              )              
-  :subobjects(
-              (lines :class 'polyline-object
-                  vertices ^^point-list
-                  )
-              (frame :class 'extrusion-object
-                  swept-object ^lines
-                  vector '(0.0 10.0 0.0)
-                  distance ^^shim-width
-                  solid? t
-                  )
-              (right-shim :class 'surface-thickened-class
-                  source-object ^frame
-                  back-thickness ^^thickness
-                  )
-              (left-shim :class 'mirror-object
-                  source-object ^right-shim
-                  basis-vector '((0 1 0) (0 0 1))
-                  point-on-mirror '(0 0 0)
-               )
 
-              (shim :class 'assembly-object
-                  object-list(list (the right-shim) (the left-shim))
-                  )
-              (bolt-nut :class 'bolt-nut-class
-                  nut-hole-diameter ^^bolt-hole-width
-                  nut-bolt-distance ^^bolt-to-nut-distance
-                  orientation (list
-                               (rotate 90 '(0 -1 0))
-                               (translate (list                                          
-                                           (- (* ^^pipe-radius 0.8))
-                                           (/ ^^shim-width 2)
-                                           (/ (- ^^pipe-center-to-top-baseplate ^^pipe-radius) 2)
-                                           )
-                                          )
-                               )
-                  )
-              )
-  )
 
 (define-class top-cradle-class
   :inherit-from (union-object)
@@ -848,25 +700,43 @@
                 )
   )
 
-
 (define-class cradle-with-rib-support-tilt-class
   :inherit-from (assembly-object)
   :properties(
               pipe-diameter (default 0.5)
               pipe-radius (/ ^pipe-diameter 2)
-              clamp-tilt-angle (default 30)
+              clamp-tilt-angle (default 0)
               clamp-width ^pipe-diameter
               support-thickness (default (/ ^pipe-diameter 40))
-              base-plate-lenght (default ^clamp-width)
+              base-plate-length (default ^clamp-width)
               base-plate-width (default ^clamp-width)
               pipe-center-to-bottom-baseplate (default (* ^pipe-diameter 0.7))
               outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
-              tilt-angle (default 30)
+             
+              ;;Cradle tilt-angle 
+              tilt-angle (default 0)
+              
+              ;;RIBS
+              number-of-ribs (default 3)
+              rib-angle (default 90)             
+              rib-thickness (default ^support-thickness)
+              rib-width (default ^base-plate-width)
+              rib-depth (default ^base-plate-length)
+              rib-start-point (case ^number-of-ribs
+                                (1 0)
+                                (t (((*  ^outer-radius-of-clamp (sind (/ ^rib-angle 2))))))
+                                )
+              rib-step (case ^number-of-ribs
+                         (1 0)
+                         (t (* (/ ^rib-start-point (- ^number-of-ribs 1)) -2))
+                         )
+              view (default 'fea);;or bom
 
-              view (default 'fea);;or FEA
-              heigth-rib-1-3-fea (- ^pipe-center-to-bottom-baseplate (- (* ^outer-radius-of-clamp (cosd 30)) (/ ^support-thickness 2)))
-              heigth-rib-1-3-bom (- ^pipe-center-to-bottom-baseplate (+ (* ^outer-radius-of-clamp (cosd 30)) (/ ^support-thickness 3)))
-              object-list (list (the pipe-support))
+              rib-object-list (case ^view
+                                (bom (list ^ribs-uncut ^trimming-cylinder ^clamp ^baseplate ^trimming-box ^trimming-clamp))
+                                (t (list ^ribs-uncut ^trimming-cylinder ^clamp ^baseplate ^trimming-box))
+                                )
+              object-list (list (the clamp) (the ribs) (the baseplate))
 
               )
   :subobjects (
@@ -878,133 +748,113 @@
                                 )
                    display? nil
                    )
+               (trimming-clamp :class 'top-cradle-class
+                   pipe-diameter ^^pipe-diameter
+                   orientation (list
+                                (rotate (- 180 ^^tilt-angle) '(0 1 0))
+                                (translate (list 0 0 (-  ^^pipe-center-to-bottom-baseplate (* ^^support-thickness 1.5))))                                
+                                )
+                   display? nil
+                   ) 
                (baseplate :class 'box-object
-                   height ^^base-plate-lenght
-                   width ^^base-plate-width
+                   height ^^base-plate-length
+                   width (case (< ^^base-plate-width (+ (* ^^rib-start-point 2) ^^rib-thickness))
+                           (nil ^^base-plate-width)
+                           (t (+ (* ^^rib-start-point 2) ^^rib-thickness))
+                           ) 
                    depth ^^support-thickness
                    display? nil
+
                    )
-               (support-line1 :class 'line-object
-                   point1 (list (- (* ^^outer-radius-of-clamp (sind 30))) 0 0)
-                   point2 (list (- (* ^^outer-radius-of-clamp (sind 30))) 0 (if (equal ^^view 'bom)
-                                                                                ^^heigth-rib-1-3-bom
-                                                                              ^^heigth-rib-1-3-fea
-                                                                              )
-                                )
-                                                                              
-                   display? nil
-                   )
-               (support-line2 :class 'line-object
-                   point1 (list 0 0 0)
-                   point2 (list 0 0 (if (equal ^^view 'bom)
-                                        (- ^^pipe-center-to-bottom-baseplate ^^outer-radius-of-clamp)
-                                      (- ^^pipe-center-to-bottom-baseplate (- ^^outer-radius-of-clamp ^^support-thickness))
-                                ))
-                   display? nil
-                   )
-               (support-line3 :class 'line-object
-                   point1 (list (* ^^outer-radius-of-clamp (sind 30)) 0 0)
-                   point2 (list (+ (* ^^outer-radius-of-clamp (sind 30))) 0 (if (equal ^^view 'bom)
-                                                                                ^^heigth-rib-1-3-bom
-                                                                              ^^heigth-rib-1-3-fea
-                                                                              )
-                                )
+               (rib-single :class 'box-object
+                   height (^^rib-depth)
+                   width (^^rib-thickness)
+                   depth (* ^^pipe-center-to-bottom-baseplate 1.5)
                    
-                   display? nil
+                   display? nil 
                    )
-               (support-surface1 :class 'extrusion-object
-                   swept-object ^support-line1
-                   vector '(0.0 10.0 0.0)
-                   distance ^^clamp-width
-                   solid? t
-                   display? nil
-                   )
-               (support-surface2 :class 'extrusion-object
-                   swept-object ^support-line2
-                   vector '(0.0 10.0 0.0)
-                   distance ^^clamp-width
-                   solid? t
-                   display? nil
-                   )
-               (support-surface3 :class 'extrusion-object
-                   swept-object ^support-line3
-                   vector '(0.0 10.0 0.0)
-                   distance ^^clamp-width
-                   solid? t
-                   display? nil
-                   )
-               (support1-1 :class 'extrusion-object
-                   swept-object ^support-surface1
-                   vector '(10.0 0.0 0.0)
-                   distance (/ ^^support-thickness 2)
-                   solid? t
-                   display? nil
-                   )
-               (support2-1 :class 'extrusion-object
-                   swept-object ^support-surface2
-                   vector '(10.0 0.0 0.0)
-                   distance (/ ^^support-thickness 2)
-                   solid? t
-                   display? nil
-                   )
-               (support3-1 :class 'extrusion-object
-                   swept-object ^support-surface3
-                   vector '(10.0 0.0 0.0)
-                   distance (/ ^^support-thickness 2)
-                   solid? t
-                   display? nil
-                   )
-               (support1-2 :class 'extrusion-object
-                   swept-object ^support-surface1
-                   vector '(-10.0 0.0 0.0)
-                   distance (/ ^^support-thickness 2)
-                   solid? t
-                   display? nil
-                   )
-               (support2-2 :class 'extrusion-object
-                   swept-object ^support-surface2
-                   vector '(-10.0 0.0 0.0)
-                   distance (/ ^^support-thickness 2)
-                   solid? t
-                   display? nil
-                   )
-               (support3-2 :class 'extrusion-object
-                   swept-object ^support-surface3
-                   vector '(-10.0 0.0 0.0)
-                   distance (/ ^^support-thickness 2)
-                   solid? t
-                   display? nil
-                   )
-               (support-ribs :class 'union-object
-                   object-list (list (the support1-1) (the support2-1) (the support3-1) (the support1-2) (the support2-2) (the support3-2))
-                   orientation (list (translate (list 0 (- (/ ^^clamp-width 2)) 0)))
+               (ribs-uncut :class 'linear-array-object
+                   vector '(1.0 0.0 0.0)
+                   spacing ^^rib-step
+                   quantity ^^number-of-ribs
+                   start-point (list ^^rib-start-point 0.0  (* ^^pipe-center-to-bottom-baseplate 0.75))
+                   spacing ^^rib-step
+                   source-object ^^rib-single
+
                    display? nil
 
                    )
-               (pipe-support :class (case ^view
-                                      ('fea 'union-object)
-                                      ('bom 'assembly-object)
-                                      )
-                   object-list (list (the baseplate) (the support-ribs) (the clamp))
+               (trimming-box :class 'box-object
+                   height ^^base-plate-length
+                   width (case (< ^^base-plate-width (+ (* ^^rib-start-point 2) ^^rib-thickness))
+                           (nil (* ^^base-plate-width 2))
+                           (t (* (+ (* ^^rib-start-point 2) ^^rib-thickness) 2))
+                           ) 
+                   depth(^^pipe-center-to-bottom-baseplate)
+                   display? nil
+                   orientation (list
+                                (rotate (- 180 ^^tilt-angle) '(0 1 0))
+                                (translate (list  0.0 0.0  (+ ^^pipe-center-to-bottom-baseplate (- (/ ^depth 2) ^^support-thickness))))                                
+                                
+                   )
+                   )
+               (trimming-cylinder :class 'cylinder-object
+                   diameter(^^pipe-diameter)
+                   height(* ^^base-plate-length 2)
+                   orientation (list
+                                (rotate 90 '(1  0 0)
+                                (translate (list 0.0  ^^pipe-center-to-bottom-baseplate 0.0))
+                                           )
+                                )
+                   display? nil 
+                   )     
+               (ribs :class 'difference-object
+                   object-list ^^rib-object-list 
                    display? nil
                    )
+               
                )
+  
+
+  
+
   )
 
+
+
+
+
+
+
 (define-class pipe-support-cradle-with-tilt-style-01-class
-  :inherit-from (assembly-object)
+  :inherit-from (assembly-object data-model-node-mixin)
   :properties(
               ;;Pipe Direction New;;;;
-              input-origin-pos (default (list 1.0 1.0 1.0))
-              pipe-direction (list 0 1 0)
-              pipe-up-direction (list 0 0 1)
+
+              (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
+              ;;input-origin-pos (default (list 1.0 1.0 1.0))
+              ;;pipe-direction (list 0 1 0)
+              ;;pipe-up-direction (list 0 0 1)
               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
-              reference-coordinate-system (the clamp-reference-coordinate-system)
+
               ;;;;;;;;;;;
-              pipe-diameter (default 0.5)               
+             (pipe-diameter :class 'editable-data-property-class
+                  label "Pipe diameter: "
+                  formula 0.1)             
               pipe-radius (/ ^pipe-diameter 2)
               pipe-center-to-bottom-baseplate (default ^pipe-diameter)
-              tilt-angle (default 30)
+              tilt-angle (default 0)
               nut-bolt-distance (* (* ^pipe-radius (sind 14)) 2)
               flip-lenght (/ ^pipe-radius 4)
 
@@ -1013,38 +863,53 @@
               nut-height (* ^nut-hole-diameter 0.9)
               head-height ^nut-height
 
-              view (default 'bom);;fea or bom
+             
+
+
+              ;;Rib
+              number-of-ribs (default 2)
+              view (default 'fea);;fea or bom
+              rib-angle (default 90)
+
+              object-list (list (the cradle-bottom) (the cradle-top) (the fastning))
+              
+              reference-coordinate-system (the cradle-1-coordinate-system)
+              
               )
   :subobjects (
                ;;Changes;;;;
-               (pipe-reference-coordinate-system :class 'coordinate-system-class
+               (pipe-cradle-reference-coordinate-system :class 'coordinate-system-class
                    origin ^^input-origin-pos
                    vector-j ^^pipe-direction
                    vector-i ^^pipe-x-direction
+                   length 0.1
+                   display? t
                    )
                ;; End changes;;;
-               (cradle-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 (- ^^pipe-center-to-bottom-baseplate))
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
+               (cradle-1-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
+                   reference-coordinate-system ^^pipe-cradle-reference-coordinate-system
                    display? t
+                   length 0.1
                    )
                (cradle-bottom :class 'cradle-with-rib-support-tilt-class
                    pipe-diameter ^^pipe-diameter
                    tilt-angle ^^tilt-angle
                    view ^^view
                    pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
-                   reference-coordinate-system ^^cradle-coordinate-system
+                   reference-coordinate-system  (the cradle-1-coordinate-system)
+                   rib-angle ^^rib-angle
                    )
                (cradle-top :class 'top-cradle-class
                    pipe-diameter ^^pipe-diameter
                    orientation (rotate (- ^^tilt-angle) '(0 1 0))
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
+                   ;;reference-coordinate-system ^^pipe-cradle-reference-coordinate-system
                    )
-               (isolated-pipe :class 'isolated-pipe-class
-                   pipe-diameter 0.1
-                   isolation-layer-list (list '(0.2 0.05) '(0.3 0.05) '(0.5 .1))
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
-                   )
+;;;                (isolated-pipe :class 'isolated-pipe-class
+;;;                    pipe-diameter 0.1
+;;;                    isolation-layer-list (list '(0.2 0.05) '(0.3 0.05) '(0.5 .1))
+;;;                    reference-coordinate-system ^^pipe-reference-coordinate-system
+;;;                    )
                (bolt1 :class 'bolt-nut-class
                    nut-hole-diameter ^^nut-hole-diameter
                    nut-bolt-distance ^^nut-bolt-distance
@@ -1114,7 +979,7 @@
                                 (translate (list 0 (- (/ (* ^^pipe-radius 4) 8)) 0))
                                 )
                    
-                   reference-coordinate-system ^^pipe-reference-coordinate-system
+                   reference-coordinate-system ^^pipe-cradle-reference-coordinate-system
                    )
                )
   )
@@ -1343,15 +1208,33 @@
   )
 
 (define-class pipe-support-roller-style-01-class;;roller
-  :inherit-from (union-object)
+  :inherit-from (union-object data-model-node-mixin)
   :properties(
               ;;Pipe Direction New;;;;
-              input-origin-pos (default (list 1.0 1.0 1.0))
-              pipe-direction (list 0 1 0)
-              pipe-up-direction (list 0 0 1)
+
+              (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
+              
+             ;; input-origin-pos (default (list 0 0 0))
+             ;; pipe-direction (list 0 1 0)
+             ;; pipe-up-direction (list 0 0 1)
               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
               ;;;;;;;;;;;
-              pipe-diameter (default 0.5)
+       
+              (pipe-diameter :class 'editable-data-property-class
+                  formula 0.5
+                  label "pipe-diameter: "
+                  )
               pipe-radius (/ ^pipe-diameter 2)
               core-diameter (/ ^pipe-radius 11)
               roller-core-width ^pipe-radius
@@ -1360,31 +1243,34 @@
               support-thickness (default (/ ^pipe-diameter 32))
               base-plate-lenght (default ^clamp-width)
               base-plate-width (default ^clamp-width)
-              pipe-center-to-bottom-baseplate (default ^pipe-diameter)
+              (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+                  formula ^pipe-diameter
+                  label "pipe center to baseplate: "
+                  )
               outer-radius-of-clamp (+ ^pipe-radius (/ ^pipe-radius 15))
               object-list (list (the baseplate) (the support-ribs) (the rollers))
-              reference-coordinate-system (the cradle-reference-coordinate-system)
+              reference-coordinate-system (the roller-coordinate-system)
                             
               )
   :subobjects (
                ;;Changes;;;;
-               (cradle-reference-coordinate-system :class 'coordinate-system-class
+               (pipe-roller-reference-coordinate-system :class 'coordinate-system-class
                    origin ^^input-origin-pos
                    vector-j ^^pipe-direction
                    vector-i ^^pipe-x-direction
                    )
                ;; End changes;;;
-               (pipe-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 0.0 ^^pipe-center-to-bottom-baseplate)
-                   reference-coordinate-system ^^cradle-reference-coordinate-system
+               (roller-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
+                   reference-coordinate-system ^^pipe-roller-reference-coordinate-system
                    display? t
                    )
-               (pipe :class 'pipe-object
-                   outer-diameter ^^pipe-diameter
-                   thickness 0.05
-                   orientation (list (rotate 90 '(1 0 0)))
-                   reference-coordinate-system ^^pipe-coordinate-system
-                   )
+;;;                (pipe :class 'pipe-object
+;;;                    outer-diameter ^^pipe-diameter
+;;;                    thickness 0.05
+;;;                    orientation (list (rotate 90 '(1 0 0)))
+;;;                    reference-coordinate-system ^^pipe-coordinate-system
+;;;                    )
                (baseplate :class 'box-object
                    height ^^base-plate-lenght
                    width ^^base-plate-width
@@ -1447,7 +1333,7 @@
                    object-list (list (the support1-1) (the support3-1) (the support1-2) (the support3-2))
                    orientation (list (translate (list 0 (- (/ ^^clamp-width 2)) 0)))
                    display? nil
-                   ;;reference-coordinate-system ^^clamp-reference-coordinate-system
+                   ;;reference-coordinate-system ^^roller-coordinate-system
                    )
                (roller1 :class 'roller-class
                    pipe-diameter ^^pipe-diameter
@@ -1488,22 +1374,264 @@
                )
   )
 
+  
+(define-class shims-class
+  :inherit-from (graphic-object)
+  :properties(
+              pipe-diameter (default 0.5)
+              thickness (default (/ ^pipe-diameter 40))
+              pipe-radius (/ ^pipe-diameter 2)
+              contact-shims-pipe-angle (default 60)
+              angle (/ ^contact-shims-pipe-angle 2)
+              pipe-center-to-top-baseplate (default (/ (* ^pipe-radius 3) 2))
+              point4z (* (* ^pipe-radius 0.6) (sind ^angle))
+              point-list (list
+                          (list (- (* ^pipe-radius 0.8) (+ ^thickness 0.00001)) 0.0 0.0)
+                          (list (* ^pipe-radius 0.2) 0.0 0.0)
+                          (list (* ^pipe-radius 0.2) 0.0 (- ^pipe-center-to-top-baseplate ^pipe-radius))
+                          (list (* ^pipe-radius 0.8) 0.0 (+ (- ^pipe-center-to-top-baseplate ^pipe-radius) ^point4z))
+                          (list (* ^pipe-radius 0.8) 0.0 0.0)
+                          )
+              bolt-hole-width (default (* ^thickness 0.6))
+              bolt-height (* ^pipe-radius 0.8)
+              bolt-to-nut-distance (default (* 2 (* ^pipe-radius 0.8)))
+              shim-width (/ ^pipe-diameter 6)
+              
+              input-origin-pos (list 3.0 2.0 1.0)
+              pipe-direction (list 0.0 1.0 0.0)
+              pipe-up-direction (list 0.0 0.0  1.0)
+              pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
+              reference-coordinate-system (default nil)
+              )              
+  :subobjects(
+              (shims-global-coordinate-system :class 'coordinate-system-class
+                  origin (list 0 0 0)
+                  reference-coordinate-system ^^reference-coordinate-system
+                  display? nil
+                  )
+              (lines :class 'polyline-object
+                  vertices ^^point-list
+                  reference-coordinate-system ^^shims-global-coordinate-system
+                  )
+              (frame :class 'extrusion-object
+                  swept-object ^lines
+                  vector ^^pipe-direction
+                  distance ^^shim-width
+                  solid? t
+                  )
+              (right-shim :class 'surface-thickened-class
+                  source-object ^frame
+                  back-thickness ^^thickness
+                  )
+              (left-shim :class 'mirror-object
+                  source-object ^right-shim
+                  basis-vector (list ^^pipe-direction ^^pipe-up-direction)
+                  point-on-mirror ^^input-origin-pos    
+               )
+
+              (shim :class 'assembly-object
+                  object-list(list (the right-shim) (the left-shim))
+                  )
+              (bolt-nut :class 'bolt-nut-class
+                  nut-hole-diameter ^^bolt-hole-width
+                  nut-bolt-distance ^^bolt-to-nut-distance
+                  orientation (list
+                               (rotate 90 '(0 -1 0))
+                               (translate (list                                          
+                                           (- (* ^^pipe-radius 0.8))
+                                           (/ ^^shim-width 2)
+                                           (/ (- ^^pipe-center-to-top-baseplate ^^pipe-radius) 2)
+                                           )
+                                          )
+                               )
+                  reference-coordinate-system ^^shims-global-coordinate-system
+                  )
+              )
+  )
+
+(define-class pipe-support-pipe-class
+  :inherit-from (union-object data-model-node-mixin);;position
+  :properties (
+               ;;Width: X Height: Y Depth: Z
+               
+               
+               ;;USER INPUTS;;
+
+               (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
+               
+               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
+               ;;Pipe radius
+
+               (pipe-diameter :class 'editable-data-property-class
+                   formula 0.5
+                   label "pipe-diameter: "
+                   )
+               outer-pipe-radius (/ ^pipe-diameter 2)
+
+              ;;;  (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+;;;                   formula ^pipe-diameter
+;;;                   label "pipe center to baseplate: "
+;;;                   )
+
+               
+               
+               ;;outer-pipe-radius (default 1)
+               ;;Clearance between pipe and base-plate
+               clearance (default 0)
+
+
+ 
+               ;;BACKEND PROPERTIES;;
+               ;;Ubeam
+               ubeam-pipe-gap (* ^outer-pipe-radius 0.05)
+               ubeam-radius 0.0
+               ubeam-height 0.0
+
+               ;;Base properties
+               base-height ^base-plate-height
+               base-depth (* ^outer-pipe-radius 0.5)
+               base-width (* ^outer-pipe-radius 3)
+               
+               ;;Base-plate properties
+               base-plate-height (* (+ ^outer-pipe-radius ^ubeam-thickness) 1.5)
+               base-plate-depth (* ^outer-pipe-radius 0.05)
+               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 2.2) 
+               
+
+               ;;Ubeam properties
+               ubeam-angle (default 180)
+               ubeam-thickness (* ^outer-pipe-radius 0.05)
+               ubeam-outer-diameter (* ^outer-pipe-radius 0.05)
+
+               ;;Ubeam pipe properties
+               side-pipe-diameter ^ubeam-outer-diameter
+               pipe-height (* ^outer-pipe-radius 1.4)
+
+               ;;Base-type
+               base-type (default base-ibeam-class)
+               base-size1 (* ^outer-pipe-radius 4.41)
+
+               
+               )
+  
+  :subobjects (
+               (global-coordinate-system :class 'coordinate-system-class
+                   origin ^^input-origin-pos
+                   vector-j ^^pipe-direction
+                   vector-i ^^pipe-x-direction
+                   )
+               (ubeam1-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
+                   reference-coordinate-system ^^global-coordinate-system
+                   display? nil
+                   )
+               (ubeam1 :class 'ubeam-class
+                   elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
+                   thickness ^^ubeam-thickness
+                   outer-diameter ^^ubeam-outer-diameter
+                   outer-pipe-radius ^^outer-pipe-radius
+                   ubeam-pipe-gap ^^ubeam-pipe-gap
+                   pipe-height ^^pipe-height
+                   base-depth ^^base-depth
+                   diameter ^^side-pipe-diameter
+                   reference-coordinate-system ^^ubeam1-coordinate-system
+                   )
+               (ubeam2-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 (* ^^outer-pipe-radius -0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
+                   reference-coordinate-system ^^global-coordinate-system
+                   display? nil
+                   )
+               (ubeam2 :class 'ubeam-class
+                   elbow-radius (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2))
+                   thickness ^^ubeam-thickness
+                   outer-diameter ^^ubeam-outer-diameter
+                   outer-pipe-radius ^^outer-pipe-radius
+                   ubeam-pipe-gap ^^ubeam-pipe-gap
+                   pipe-height ^^pipe-height
+                   base-depth ^^base-depth
+                   diameter ^^side-pipe-diameter
+                   reference-coordinate-system ^^ubeam2-coordinate-system
+                   )
+               
+               (base-plate-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
+                   reference-coordinate-system ^^global-coordinate-system
+                   display? nil
+                   )
+               (base-plate :class 'box-object
+                   height ^^base-plate-height
+                   depth ^^base-plate-depth
+                   width ^^base-plate-width
+                   reference-coordinate-system ^^base-plate-coordinate-system
+                   )
+
+
+               (pipe-support-v1-shims-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 (-(* (/ ^^base-plate-height 2) 0.95)) 0.0)
+                   reference-coordinate-system ^^global-coordinate-system
+                   display? nil
+                   )
+               (pipe-support-v1-shims :class 'shims-class
+                   pipe-diameter (* ^^outer-pipe-radius 2)
+                   shim-width (* ^^base-plate-height 0.95)
+                   input-origin-pos ^^input-origin-pos
+                   pipe-direction ^^pipe-direction
+                   pipe-up-direction ^^pipe-up-direction
+                   pipe-x-direction ^^pipe-x-direction
+                   reference-coordinate-system ^^pipe-support-v1-shims-coordinate-system
+                )
+  )
+  )
+
 (define-class pipe-support-flat-class
-  :inherit-from (object)
+  :inherit-from (union-object data-model-node-mixin)
   :properties (
                ;;Height Y
                ;;Width X
                ;;Depth Z
                
                ;;USER INPUTS
-               input-origin-pos (list 2.0 2.0 2.0)
-               pipe-direction (list 0 0 1)
-               pipe-up-direction (list 0 1 0)
+        
+               (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
                pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
                
                ;;Pipe properties
               ;; pipe-height (default 10)
-               outer-pipe-radius (default 1)
+
+               (pipe-diameter :class 'editable-data-property-class
+                   formula 0.5
+                   label "pipe-diameter: "
+                   )
+               outer-pipe-radius (/ ^pipe-diameter 2)
+
+               (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+                  formula ^pipe-diameter
+                  label "pipe center to baseplate: "
+                  )
+               
+               ;;outer-pipe-radius (default 1)
                ubeam-pipe-gap (* ^outer-pipe-radius 0.05)
                ubeam-radius 0.0
                ubeam-height 0.0
@@ -1516,7 +1644,7 @@
                ;;Base-plate properties
                base-plate-height (* (+ ^outer-pipe-radius ^ubeam-thickness) 1.05)
                base-plate-depth (* ^outer-pipe-radius 0.05)
-               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 2.2) 
+               base-plate-width (* (+ (+ ^outer-pipe-radius ^ubeam-pipe-gap) ^ubeam-thickness) 3.4) 
                
 
                ;;Ubeam properties
@@ -1531,7 +1659,8 @@
                ;;Base-type
                base-type (default base-ibeam-class)
                base-size1 (* ^outer-pipe-radius 4.41)
-
+               ;;Ubeam thickness
+               thickness (default (/ ^outer-pipe-radius 20))
                ;;Base-concrete-ubeam
                
                )
@@ -1555,8 +1684,9 @@
                    )
                (ubeam3-coordinate-system :class 'coordinate-system-class
                    vector-j '(0 0 1)
-                   origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^outer-pipe-radius ^^ubeam-pipe-gap))
+                   origin (list 0.0 (* ^^outer-pipe-radius 0.45) (+ ^^outer-pipe-radius ^^thickness))
                    reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
                (ubeam1 :class 'flat-ubeam-class
                    base-height ^^base-plate-height
@@ -1575,7 +1705,7 @@
                (triangle :class 'extrusion-object
                    swept-object ^triangle1
                    vector '(0 1 0)
-                   distance (/ (* ^^base-plate-height 1.6) 2)
+                   distance (/ (* ^^base-plate-height 1.3) 2)
                    (triangle1 :class 'triangle-class
                               vertices (list
                                         (list 0.0 0.0 0.0)
@@ -1585,7 +1715,7 @@
                                         )
                               distance ^^base-plate-depth
                               orientation (list
-                                           (translate (list (+ ^^outer-pipe-radius ^^ubeam-pipe-gap) (-(* ^^outer-pipe-radius 0.4)) (* ^^outer-pipe-radius 0.05))))
+                                           (translate (list (+ (+ ^^outer-pipe-radius (/ ^^ubeam-pipe-gap 2)) ^^thickness) (-(* ^^outer-pipe-radius 0.35)) ^^thickness)))
                               )
                    reference-coordinate-system ^^global-coordinate-system
                    )
@@ -1595,24 +1725,41 @@
                    point-on-mirror ^^input-origin-pos
                   ;; reference-coordinate-system ^^global-coordinate-system
                    )
-               
-               (lower-pipe-support :class 'extrusion-object
-                   outer-radius ^outer-pipe-radius
-                   vector '(0 1 0)
-                   distance (/ (* ^^base-plate-height 1.6) 2)
-                   orientation (list
-                                (translate (list (* ^^outer-pipe-radius 0.9) (-(/ (* ^^base-plate-height 0.8) 2)) (+ ^^base-plate-depth (* ^^outer-pipe-radius 0.2))))
-                                )
-                   swept-object ^lower-pipe-support1
-                   (lower-pipe-support1 :class 'lower-support-class)
-                    reference-coordinate-system ^^global-coordinate-system
-                    )
-               (lower-pipe-mirror :class 'mirror-object
-                   source-object ^^lower-pipe-support
-                   basis-vector (list ^^pipe-direction ^^pipe-up-direction)
-                   point-on-mirror ^^input-origin-pos
-                  ;; reference-coordinate-system ^^global-coordinate-system
+
+               (pipe-support-v1-shims-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 (-(* (/ ^^base-plate-height 2) 0.95)) 0.0)
+                   reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
+               (pipe-support-v1-shims :class 'shims-class
+                   pipe-diameter (* ^^outer-pipe-radius 2)
+                   shim-width (* ^^base-plate-height 0.95)
+                   input-origin-pos ^^input-origin-pos
+                   pipe-direction ^^pipe-direction
+                   pipe-up-direction ^^pipe-up-direction
+                   pipe-x-direction ^^pipe-x-direction
+                   reference-coordinate-system ^^pipe-support-v1-shims-coordinate-system
+                )
+
+
+               ;;Gammel shims
+               ;;; (lower-pipe-support :class 'extrusion-object
+;;;                    outer-radius ^outer-pipe-radius
+;;;                    vector '(0 1 0)
+;;;                    distance (/ (* ^^base-plate-height 1.6) 2)
+;;;                    orientation (list
+;;;                                 (translate (list (* ^^outer-pipe-radius 0.9) (-(/ (* ^^base-plate-height 0.8) 2)) (+ ^^base-plate-depth (* ^^outer-pipe-radius 0.2))))
+;;;                                 )
+;;;                    swept-object ^lower-pipe-support1
+;;;                    (lower-pipe-support1 :class 'lower-support-class)
+;;;                     reference-coordinate-system ^^global-coordinate-system
+;;;                     )
+;;;                (lower-pipe-mirror :class 'mirror-object
+;;;                    source-object ^^lower-pipe-support
+;;;                    basis-vector (list ^^pipe-direction ^^pipe-up-direction)
+;;;                    point-on-mirror ^^input-origin-pos
+;;;                   ;; reference-coordinate-system ^^global-coordinate-system
+;;;                    )
                 )
   )
 
@@ -1687,3 +1834,197 @@
     pointlist
     )
   )
+
+(define-class pipe-support-master-class
+  :inherit-from (data-model-node-mixin)
+  :properties(
+
+              (input-origin-pos :class 'editable-data-property-class
+                  formula (list 0 0 0)
+                  label "Origin: "
+                  )
+              (pipe-direction :class 'editable-data-property-class
+                  formula (list 0 1 0)
+                  label "Pipe direction: "
+                  )
+              (pipe-up-direction :class 'editable-data-property-class
+                  formula (list 0 0 1)
+                  label "Pipe up direction: "
+                  )
+              (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+                  formula 0.5
+                  label "pipe center to baseplate: "
+                  )
+              (support-type :class 'editable-data-property-class
+                  formula "none"
+                  label "Support type: "
+                  interactive-method '(choosing-support-type-method (
+                                                        "Cradle"
+                                                        "Roller"
+                                                        "Flat"
+                                                        "Double")
+                                                       )
+                  )
+              (pipe-view :class 'editable-data-property-class
+                  formula "no-pipe"
+                  label "Pipe: "
+                  interactive-method '(choosing-pipe-method (
+                                                        "no-pipe"
+                                                        "insulated-pipe"
+                                                        "regular-pipe")
+                                                       )
+                  )                                                         
+              (pipe-outer-diameter :class 'editable-data-property-class
+                  formula 0.5
+                  label "Pipe outer Diameter"
+                  editable? (case !pipe-view
+                              ('regular-pipe t)
+                              (t nil)
+                              )
+                  )
+              (insulation-layers :class 'editable-data-property-class
+                  formula (list '(0.2 0.05) '(0.3 0.05))
+                  label "layers: "
+                  editable? (case !pipe-view
+                              ('insulated-pipe t)
+                              (t nil)
+                              )
+                  display? t
+                  )
+
+               (tilt-angle :class 'editable-data-property-class
+                  formula 0
+                  lable "Cradle angle: "
+                )
+               (number-of-ribs :class 'editable-data-property-class
+                   formula 3
+                   lable "Number of ribs: "
+                   )
+               (rib-angle :class 'editable-data-property-class
+                   formula 90
+                   lable "Rib angle: "
+                   eidtable? (case !support-type
+                               ('cradle t)
+                               (t nil)
+                               )
+                   
+                   )
+               (view :class 'editable-data-property-class
+                   formula "FEA"
+                   lable "View: "
+                   interactive-method '(choosing-view-method(
+                                                             "FEA"
+                                                             "BOM"
+                                                             )
+                                                            )
+                   )
+               
+                                                                                     
+
+                  
+
+
+               
+              
+
+              )
+                  
+  :subobjects(
+              (pipe :class (case !pipe-view
+                             ('insulated-pipe 'insulated-pipe-class)
+                             ('regular-pipe 'pipe-object)
+                             (t 'null-object))
+                  insulation-layer-list ^^insulation-layers
+                  outer-diameter ^^pipe-outer-diameter
+                  orientation (rotate 90 (case !pipe-view
+                                           ('regular-pipe '(1 0 0))
+                                           ('insulated-pipe '(1 0 0))
+                                           (t '(0 0 0))
+                                           ))
+
+                  )
+              
+              (support :class (case !support-type
+                                ('cradle 'pipe-support-cradle-with-tilt-style-01-class)
+                                ('roller 'pipe-support-roller-style-01-class)
+                                ('flat 'pipe-support-flat-class)
+                                ('double 'pipe-support-pipe-class)
+                                (t 'null-object)
+                                )
+                  pipe-diameter ^^pipe-outer-diameter
+                  pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
+
+                  
+                  input-origin-pos ^^input-origin-pos
+                  pipe-direction ^^pipe-direction
+                  pipe-up-direction ^^pipe-up-direction
+
+                  view ^^view
+
+
+                  )
+              )
+  )
+
+(define-method choosing-view-method editable-data-property-class (index)
+  (case index
+    (1
+     (change-value !view 'fea)
+     (list 'fea)
+     )
+    (2
+     (change-value !view 'bom)
+     (list 'bom)
+     )
+    (t
+     (change-value !view 'fea)
+     (list 'fea)
+     )
+    )
+  )
+  
+     
+     
+
+
+  
+
+(define-method choosing-support-type-method editable-data-property-class (index)
+  (case index
+    (1
+     (change-value !support-type 'cradle)
+     ;;Dette er et forsøk på å hente ut ytterste lag av isolasjon radius slik at man kan skalere support
+;;;      (change-value !pipe-outer-diameter (case !pipe-view
+;;;                                           ('insulated-pipe (the total-diameter (:from pipe)))
+;;;                                           (t !pipe-outer-diameter)
+;;;                                           ))
+     (list 'cradle))
+    (2
+     (change-value !support-type 'roller)
+     (list 'roller))
+    (3
+     (change-value !support-type 'flat)
+     (list 'flat)
+     )
+    (4
+     (change-value !support-type 'double)
+     (list 'double)
+     )
+    )
+  )
+(define-method choosing-pipe-method editable-data-property-class (index)
+  (case index
+    (1
+     (change-value !pipe-view 'no-pipe)
+     (list 'no-pipe))
+    (2
+     (change-value !pipe-view 'insulated-pipe)
+     (list 'insulated-pipe))
+    (3
+     (change-value !pipe-view 'regular-pipe)
+     (list 'regular-pipe))
+    )
+  )
+
+
+
