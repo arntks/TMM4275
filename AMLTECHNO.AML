@@ -358,6 +358,55 @@
               )
   )
 
+(define-class simple-saddle-class
+  :inherit-from (object)
+  :properties (
+               ;;Reference coordinate system
+               reference-coordinate-system (default nil)
+               
+               ;;Pipe
+               outer-pipe-radius (default 5)
+               pipe-direction (default (list 1.0 0.0 0.0))
+               pipe-up-direction(default (list 0.0 0.0 1.0))
+
+               ;;Base plate
+               base-depth (default 4)
+               base-plate-height (default 1)
+
+               ;;Saddle
+               saddle-thickness (default (/ ^outer-pipe-radius 20))
+               saddle-angle (default 120)
+               )
+  :subobjects(
+              (saddle-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 0.0)
+                   reference-coordinate-system ^^reference-coordinate-system
+                   display? nil
+                   )
+              (pipe-coordinate-system :class 'coordinate-system-class
+                  origin (list ^^outer-pipe-radius 0.0 0.0)
+                   reference-coordinate-system ^^saddle-coordinate-system
+                   display? nil
+                   )
+              (flat-ex :class 'extrusion-object
+                  swept-object ^saddle-arc
+                  vector '(0.0 0.0 1.0)
+                  distance (/ (* ^^base-plate-height 1.6) 2)
+                  (saddle-arc :class 'arc-object
+                               radius (^^outer-pipe-radius)
+                               start-angle (- (- 90) (/ ^^saddle-angle 2))
+                               end-angle (+ ^start-angle ^^saddle-angle)
+                               )
+                  reference-coordinate-system ^^saddle-coordinate-system
+                  )
+              (flat-surf :class 'surface-thickened-class
+                  source-object ^^flat-ex
+                  front-thickness ^^saddle-thickness
+                  )
+              
+              )
+  )
+
 (define-class triangle-class
   :inherit-from (polygon-object)
   :properties (
@@ -1759,6 +1808,128 @@
                )
   )
 
+(define-class pipe-support-simple-saddle-class
+  :inherit-from (union-object data-model-node-mixin)
+  :properties (
+               ;;Height Y
+               ;;Width X
+               ;;Depth Z
+               
+               ;;USER INPUTS
+        
+               (input-origin-pos :class 'editable-data-property-class
+                   formula (list 0 0 0)
+                   label "Origin: "
+                   )
+               (pipe-direction :class 'editable-data-property-class
+                   formula (list 0 1 0)
+                   label "Pipe up direction: "
+                   )
+               (pipe-up-direction :class 'editable-data-property-class
+                   formula (list 0 0 1)
+                   label "Pipe up direction: "
+                   )
+               pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
+               
+               ;;Pipe properties
+              ;; pipe-height (default 10)
+
+               (pipe-diameter :class 'editable-data-property-class
+                   formula 0.5
+                   label "pipe-diameter: "
+                   )
+               outer-pipe-radius (/ ^pipe-diameter 2)
+
+               (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
+                  formula ^pipe-diameter
+                  label "pipe center to baseplate: "
+                  )
+               
+
+               ;;Base properties
+               base-height (^base-plate-height)
+               base-depth (* ^outer-pipe-radius 0.5)
+               base-width (* ^outer-pipe-radius 3)
+
+               ;;Base-plate properties
+               base-plate-height (* (+ ^outer-pipe-radius ^saddle-thickness) 1.05)
+               base-plate-depth (* ^outer-pipe-radius 0.05)
+               base-plate-width (* (+ ^outer-pipe-radius ^saddle-thickness) 3.4) 
+               
+
+               ;;Saddle properties
+               saddle-angle (default 120)
+               saddle-thickness (* ^outer-pipe-radius 0.05)
+               saddle-outer-diameter (* ^outer-pipe-radius 0.05)
+
+               ;;Stanchion properties
+               stanchion-height (- ^pipe-center-to-bottom-baseplate ^outer-pipe-radius)
+               stanchion-diameter (/ ^pipe-diameter 5)
+
+               ;;Base-type
+               base-type (default base-ibeam-class)
+               base-size1 (* ^outer-pipe-radius 4.41)
+               ;;Ubeam thickness
+               thickness (default (/ ^outer-pipe-radius 20))
+               ;;Base-concrete-ubeam
+               
+               )
+  
+  :subobjects (
+
+               (saddle-coordinate-system :class 'coordinate-system-class
+                   origin ^^input-origin-pos
+                   vector-j ^^pipe-direction
+                   vector-i ^^pipe-x-direction
+                   )
+                (global-coordinate-system :class 'coordinate-system-class
+                    origin (list 0 0 (- 0 ^^pipe-center-to-bottom-baseplate))
+                    reference-coordinate-system (the saddle-coordinate-system)
+                  
+                  )
+
+               (base-plate-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
+                   reference-coordinate-system ^^global-coordinate-system
+                   )
+
+               (stanchion-coordinate-system :class 'coordinate-system-class
+                   origin (list 0.0 0.0 (/ ^^stanchion-height 2))
+                   reference-coordinate-system ^^global-coordinate-system
+                   )
+               
+               (base-plate :class 'box-object
+                   height ^^base-plate-height
+                   depth ^^base-plate-depth
+                   width ^^base-plate-width
+                   reference-coordinate-system ^^base-plate-coordinate-system
+                   )
+               (saddle3-coordinate-system :class 'coordinate-system-class
+                   vector-j '(0 0 1)
+                   origin (list 0.0 (* ^^outer-pipe-radius 0.45) (+ ^^pipe-center-to-bottom-baseplate 0.0001))
+                   reference-coordinate-system ^^global-coordinate-system
+                   display? nil
+                   )
+               (saddle :class 'simple-saddle-class
+                   base-height ^^base-plate-height
+                   outer-pipe-radius ^^outer-pipe-radius
+                   pipe-height ^^pipe-height
+                   base-depth ^^base-depth
+                   diameter ^^pipe-diameter
+                   input-origin-pos ^^input-origin-pos
+                   pipe-direction ^^pipe-direction
+                   pipe-up-direction ^^pipe-up-direction
+               
+                   reference-coordinate-system ^^saddle3-coordinate-system
+                   )
+               (stanchion :class 'cylinder-object
+                   height ^^stanchion-height
+                   diameter ^^stanchion-diameter
+                   reference-coordinate-system ^stanchion-coordinate-system
+                   )
+               )
+  )
+
 (define-class angled-insulation-class
   :inherit-from (union-object)
   :properties (
@@ -1836,7 +2007,8 @@
                                                         "Cradle"
                                                         "Roller"
                                                         "Flat"
-                                                        "Double")
+                                                        "Double"
+                                                        "Saddle")
                                                        )
                   )
               (pipe-view :class 'editable-data-property-class
@@ -1927,6 +2099,7 @@
                                 ('roller 'pipe-support-roller-style-01-class)
                                 ('flat 'pipe-support-flat-class)
                                 ('double 'pipe-support-pipe-class)
+                                ('saddle 'pipe-support-simple-saddle-class)
                                 (t 'null-object)
                                 )
                        
@@ -1988,6 +2161,10 @@
     (4
      (change-value !support-type 'double)
      (list 'double)
+     )
+    (5
+     (change-value !support-type 'saddle)
+     (list 'saddle)
      )
     )
   )
