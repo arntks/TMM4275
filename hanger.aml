@@ -1,31 +1,5 @@
 (in-package :aml)
 
-(define-class assembly-class
-  :inherit-from (union-object)
-  :properties (
-               )
-  :subobjects (
-               pipe-diameter (default 0.5)
-               (U-class :class 'hanger-U-class
-                 orientation (list
-                               (rotate 90.0 '(0.0 0.0 0.0))
-                               (translate (list 0.0  0.0 (- 0 (* ^pipe-diameter 1.2))))
-                               )
-                 )
-               (mid-class :class 'hanger-mid-class
-                  orientation (list
-                               (rotate 90.0 '(0.0 0.0 0.0))
-                               (translate (list 0.0  0.0 (- 0 (* ^pipe-diameter 0.4))))
-                               )
-                  )
-               (top-class :class 'hanger-top-class
-                   orientation (list
-                               (rotate 90.0 '(0.0 0.0 0.0))
-                               (translate '(0.0 0.0 0.0))
-                               )
-                   )
-               )
-  )
 
 
 (define-class hanger-U-class1
@@ -35,10 +9,11 @@
       thickness (/ ^pipe-diameter 15)
       elbow-radius (+ (/ ^thickness 2) (/ ^pipe-diameter 2))
       diameter (+ 0 ^thickness)
-		start-point  (list (- 0 ^elbow-radius) 0 (* 0.75 ^pipe-diameter))               
+		start-point  (list (- 0 ^elbow-radius) 0 (- (* 1.0 ^pipe-diameter) (* 1.2 ^pipe-diameter)))               
 		start-vector '(0 0 -1)             
-		end-point (list 0 0 (- 0 ^elbow-radius))
-		end-vector '(-1 0 0)                
+		end-point (list 0 0 (- (- 0 ^elbow-radius) (* 1.2 ^pipe-diameter)))
+		end-vector '(-1 0 0)
+      color 'red
 		)   
 )
 
@@ -49,10 +24,11 @@
       thickness (/ ^pipe-diameter 15)
       elbow-radius (+ (/ ^thickness 2) (/ ^pipe-diameter 2))
       diameter (+ 0 ^thickness)
-		start-point  (list ^elbow-radius 0 (* 0.75 ^pipe-diameter))               
+		start-point  (list ^elbow-radius 0 (- (* 1.0 ^pipe-diameter) (* 1.2 ^pipe-diameter)))               
 		start-vector '(0 0 -1)             
-		end-point (list 0 0 (- 0 ^elbow-radius))
-		end-vector '(1 0 0)                
+		end-point (list 0 0 (- (- 0 ^elbow-radius) (* 1.2 ^pipe-diameter)))
+		end-vector '(1 0 0)
+      color 'red
 		)   
 )
 
@@ -71,10 +47,11 @@
   :inherit-from (union-object)
   :properties (
                pipe-diameter (default 0.5)
-               orientation (list
-                           (translate (list 0.0 0.0 0.0))
+               orientation (default (list
+                           (translate (list 0.0 0.0 0.0)))
                )
                object-list (list (the horizontal-plate) (the vertical-plate1) (the vertical-plate2))
+               color 'yellow
                )
   :subobjects (
                (horizontal-plate :class 'box-object
@@ -115,6 +92,7 @@
                             (translate '(0.0 0.0 0.0)
                                        ))
                object-list (list (the horizontal-plate) (the vertical-plate))
+               color 'blue
                )
   :subobjects (
                  (horizontal-plate :class 'box-object
@@ -136,6 +114,89 @@
                                           )
                                )
                    display? nil
+                   )
+               )
+  )
+
+(define-class assembly-class
+  :inherit-from (union-object)
+  :properties (
+                pipe-diameter (default 0.5)
+               )
+  :subobjects (
+               (U-class :class 'hanger-U-class
+                 orientation (list
+                               (translate (list 0.0 0.0 (- 0 (* ^pipe-diameter 1.2))))
+                               )
+                 )
+               (mid-class :class 'hanger-mid-class
+                  orientation (list
+                               (translate (list 0.0 0.0 (- 0 (* ^pipe-diameter 0.4))))
+                               )
+                  )
+               (top-class :class 'hanger-top-class
+                   orientation (list
+                               (translate '(0.0 0.0 0.0))
+                               )
+                   )
+               (bolt-class1 :class 'bolt-class
+                   )
+               )
+  )
+
+(define-class bolt1-class
+  :inherit-from (cylinder-object)
+  :properties (
+               pipe-diameter (default 0.5)
+               height (* ^pipe-diameter 0.08)
+               diameter (* ^pipe-diameter 0.12)
+               color 'pink
+               )
+  )
+
+(define-class bolt2-class
+  :inherit-from (cylinder-object)
+  :properties (
+               pipe-diameter (default 0.5)
+               height (* ^pipe-diameter 0.55)
+               diameter (* ^pipe-diameter 0.08)
+               color 'red
+               )
+  )
+
+(define-class bolt-class
+  :inherit-from (union-object)
+  :properties (
+               pipe-diameter (default 0.5)
+               )
+  :subobjects (
+               (Bolt1 :class 'bolt1-class
+                    orientation (list
+                                (translate (list (* ^pipe-diameter 0.5333) 0.0 (- (* ^pipe-diameter 0.31))))
+                                )
+                    )
+               (Bolt2 :class 'bolt1-class
+                    orientation (list
+                                (translate (list (- (* ^pipe-diameter 0.5333)) 0.0 (- (* ^pipe-diameter 0.31))))
+                                )
+                    )
+               (Bolt3 :class 'bolt1-class
+                   orientation (list
+                                (rotate 90.0 '(0.0 1.0 0.0))
+                                (translate (list (* ^pipe-diameter 0.19) 0.0 (- (* ^pipe-diameter 0.22))))
+                                )
+                   )
+               (Bolt4 :class 'bolt1-class
+                   orientation (list
+                                (rotate 90.0 '(0.0 1.0 0.0))
+                                (translate (list (- (* ^pipe-diameter 0.19)) 0.0 (- (* ^pipe-diameter 0.22))))
+                                )
+                   )
+               (Bolt5 :class 'bolt2-class
+                   orientation (list
+                                (rotate 90.0 '(0.0 1.0 0.0))
+                                (translate (list 0.0  0.0 (- (* ^pipe-diameter 0.22))))
+                                )
                    )
                )
   )
