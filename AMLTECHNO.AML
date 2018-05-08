@@ -767,6 +767,11 @@
              
               ;;Cradle tilt-angle 
               tilt-angle (default 0)
+
+             object-type(case ^view
+                           (bom assembly-object)
+                           (t union-object)
+                           ) 
               
               ;;RIBS
               number-of-ribs (default 3)
@@ -782,14 +787,16 @@
                          (1 0)
                          (t (* (/ ^rib-start-point (- ^number-of-ribs 1)) -2))
                          )
-              view (default 'fea);;or bom
+              view (default 'bom);;or bom
 
               rib-object-list (case ^view
                                 (bom (list ^ribs-uncut ^trimming-cylinder ^clamp ^baseplate ^trimming-box ^trimming-clamp))
                                 (t (list ^ribs-uncut ^trimming-cylinder ^clamp ^baseplate ^trimming-box))
                                 )
-              object-list (list (the clamp) (the ribs) (the baseplate))
-
+              object-list (case ^view
+                            (bom (list (the clamp) (the ribs) (the baseplate)))
+                            (t (list (the bottom-cradle-fea)))
+                            )
               )
   :subobjects (
                (clamp :class 'top-cradle-class
@@ -815,8 +822,8 @@
                            (t (+ (* ^^rib-start-point 2) ^^rib-thickness))
                            ) 
                    depth ^^support-thickness
-                   display? nil
 
+                   display? nil
                    )
                (rib-single :class 'box-object
                    height (^^rib-depth)
@@ -864,12 +871,11 @@
                    object-list ^^rib-object-list 
                    display? nil
                    )
-               
+               (bottom-cradle-fea :class union-object
+                   object-list (list ^^ribs ^^clamp ^^baseplate)
+                   display? nil
+                   )
                )
-  
-
-  
-
   )
 
 
