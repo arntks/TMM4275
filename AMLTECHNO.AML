@@ -111,9 +111,9 @@
                ;;Radius of the pipe meant to be inside of the ubeam
                outer-pipe-radius (default 4.5)
                ;;Gap from the ubeam to the pipe
-               ubeam-pipe-gap
+               ubeam-pipe-gap (default 1)
                ;;Height of the bottom part of the ubeam
-               pipe-height
+               pipe-height (default 1)
                ;;The reference coordinate system; default set in (0.0 0.0 0.0) 
                reference-coordinate-system (default nil)
 
@@ -396,7 +396,7 @@
                   vector '(0.0 0.0 1.0)
                   distance (/ (* ^^base-plate-height 1.6) 2)
                   (saddle-arc :class 'arc-object
-                               radius (^^outer-pipe-radius)
+                               radius ^^outer-pipe-radius
                                start-angle (- (- 90) (/ ^^saddle-angle 2))
                                end-angle (+ ^start-angle ^^saddle-angle)
                                )
@@ -768,10 +768,6 @@
               ;;Cradle tilt-angle 
               tilt-angle (default 0)
 
-             object-type(case ^view
-                           (bom assembly-object)
-                           (t union-object)
-                           ) 
               
               ;;RIBS
               number-of-ribs (default 3)
@@ -781,13 +777,13 @@
               rib-depth (default ^base-plate-length)
               rib-start-point (case ^number-of-ribs
                                 (1 0)
-                                (t (((*  ^outer-radius-of-clamp (sind (/ ^rib-angle 2))))))
+                                (t (*  ^outer-radius-of-clamp (sind (/ ^rib-angle 2))))
                                 )
               rib-step (case ^number-of-ribs
                          (1 0)
                          (t (* (/ ^rib-start-point (- ^number-of-ribs 1)) -2))
                          )
-              view (default 'bom);;or bom
+              view (default 'fea);;fea or bom
 
               rib-object-list (case ^view
                                 (bom (list ^ribs-uncut ^trimming-cylinder ^clamp ^baseplate ^trimming-box ^trimming-clamp))
@@ -826,8 +822,8 @@
                    display? nil
                    )
                (rib-single :class 'box-object
-                   height (^^rib-depth)
-                   width (^^rib-thickness)
+                   height ^^rib-depth
+                   width ^^rib-thickness
                    depth (* ^^pipe-center-to-bottom-baseplate 1.5)
                    
                    display? nil 
@@ -837,7 +833,6 @@
                    spacing ^^rib-step
                    quantity ^^number-of-ribs
                    start-point (list ^^rib-start-point 0.0  (* ^^pipe-center-to-bottom-baseplate 0.75))
-                   spacing ^^rib-step
                    source-object ^^rib-single
 
                    display? nil
@@ -849,7 +844,7 @@
                            (nil (* ^^base-plate-width 2))
                            (t (* (+ (* ^^rib-start-point 2) ^^rib-thickness) 2))
                            ) 
-                   depth(^^pipe-center-to-bottom-baseplate)
+                   depth ^^pipe-center-to-bottom-baseplate
                    display? nil
                    orientation (list
                                 (rotate (- 180 ^^tilt-angle) '(0 1 0))
@@ -858,7 +853,7 @@
                    )
                    )
                (trimming-cylinder :class 'cylinder-object
-                   diameter(^^pipe-diameter)
+                   diameter ^^pipe-diameter
                    height(* ^^base-plate-length 2)
                    orientation (list
                                 (rotate 90 '(1  0 0)
@@ -871,7 +866,7 @@
                    object-list ^^rib-object-list 
                    display? nil
                    )
-               (bottom-cradle-fea :class union-object
+               (bottom-cradle-fea :class 'union-object
                    object-list (list ^^ribs ^^clamp ^^baseplate)
                    display? nil
                    )
@@ -1121,7 +1116,6 @@
               roller-thickness (/ ^roller-width 12)
               width (* ^roller-width 1.5)
               core-lenght ^width
-              object-list (list (the roller) (the core))
 
               clamp-width ^pipe-diameter
               support-thickness (default (/ ^pipe-diameter 40))
@@ -1578,7 +1572,7 @@
                pipe-height (+ ^clearance (/ ^base-depth 2))
 
                ;;Base-type
-               base-type (default base-ibeam-class)
+               base-type (default 'base-ibeam-class)
                base-size1 (* ^outer-pipe-radius 4.41)
                ;;reference-coordinate-system (the ubeam-baseplate-coordinate-system)
                
@@ -1706,7 +1700,7 @@
                ubeam-height 0.0
 
                ;;Base properties
-               base-height (^base-plate-height)
+               base-height ^base-plate-height
                base-depth (* ^outer-pipe-radius 0.5)
                base-width (* ^outer-pipe-radius 3)
 
@@ -1722,11 +1716,11 @@
                ubeam-outer-diameter (* ^outer-pipe-radius 0.05)
 
                ;;Ubeam pipe properties
-               pipe-diameter ^ubeam-outer-diameter
+               pipe-diameter-side ^ubeam-outer-diameter
                pipe-height (+ ^pipe-center-to-bottom-baseplate (/ ^base-depth 3))
 
                ;;Base-type
-               base-type (default base-ibeam-class)
+               base-type (default 'base-ibeam-class)
                base-size1 (* ^outer-pipe-radius 4.41)
                ;;Ubeam thickness
                thickness (default (/ ^outer-pipe-radius 20))
@@ -1771,7 +1765,7 @@
                    ubeam-pipe-gap ^^ubeam-pipe-gap
                    pipe-height ^^pipe-height
                    base-depth ^^base-depth
-                   diameter ^^pipe-diameter
+                   diameter ^^pipe-diameter-side
                    pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
                    input-origin-pos ^^input-origin-pos
                    pipe-direction ^^pipe-direction
@@ -1826,9 +1820,6 @@
 (define-class pipe-support-simple-saddle-class
   :inherit-from (union-object data-model-node-mixin)
   :properties (
-               ;;Height Y
-               ;;Width X
-               ;;Depth Z
                
                ;;USER INPUTS
         
@@ -1845,9 +1836,6 @@
                    label "Pipe up direction: "
                    )
                pipe-x-direction (listDir ^pipe-direction ^pipe-up-direction)
-               
-               ;;Pipe properties
-              ;; pipe-height (default 10)
 
                (pipe-diameter :class 'editable-data-property-class
                    formula 0.5
@@ -1862,7 +1850,7 @@
                
 
                ;;Base properties
-               base-height (^base-plate-height)
+               base-height ^base-plate-height
                base-depth (* ^outer-pipe-radius 0.5)
                base-width (* ^outer-pipe-radius 3)
 
@@ -1880,13 +1868,6 @@
                ;;Stanchion properties
                stanchion-height (- ^pipe-center-to-bottom-baseplate ^outer-pipe-radius)
                stanchion-diameter (/ ^pipe-diameter 5)
-
-               ;;Base-type
-               base-type (default base-ibeam-class)
-               base-size1 (* ^outer-pipe-radius 4.41)
-               ;;Ubeam thickness
-               thickness (default (/ ^outer-pipe-radius 20))
-               ;;Base-concrete-ubeam
                
                )
   
