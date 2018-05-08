@@ -201,7 +201,7 @@
                input-origin-pos (default (list 0.0 0.0 0.0))
                ;;
                base-plate-depth (default 1)
-               pipe-center-to-baseplate (* ^outer-pipe-radius 2)
+               pipe-center-to-bottom-baseplate (default 1)
                thickness (default (/ ^outer-pipe-radius 20))
                pipe-direction (default (list 1.0 0.0 0.0))
                pipe-up-direction(default (list 0.0 0.0 1.0))
@@ -221,7 +221,7 @@
                    display? nil
                    )
               (lower-pipe-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 (-(- ^^pipe-center-to-baseplate ^^base-plate-depth)) 0.0)
+                   origin (list 0.0 (-(- ^^pipe-center-to-bottom-baseplate ^^base-plate-depth)) 0.0)
                    reference-coordinate-system ^^pipe-coordinate-system
                    display? nil
                    )
@@ -245,7 +245,7 @@
                   outer ^^outer-pipe-radius
                   (flat-pipe1 :class 'line-object
                               point1 '(0.0 0.0 0.0)
-                              point2 (list 0.0 (-(- ^^pipe-center-to-baseplate ^^base-plate-depth)) 0.0)
+                              point2 (list 0.0 (-(- ^^pipe-center-to-bottom-baseplate ^^base-plate-depth)) 0.0)
                               )
                   reference-coordinate-system ^^pipe-coordinate-system
                   )
@@ -1582,12 +1582,13 @@
                (global-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0  0.0 (- 0 ^^pipe-center-to-bottom-baseplate))
                    reference-coordinate-system (the ubeam-baseplate-coordinate-system)
+                   display? nil
                    )
                (ubeam-baseplate-coordinate-system :class 'coordinate-system-class
                    origin ^^input-origin-pos
                    vector-j ^^pipe-direction
                    vector-i ^^pipe-x-direction
-                    
+                    display? nil
                     )
                (ubeam1-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 (* ^^outer-pipe-radius 0.5) (+ ^^ubeam-pipe-gap ^^clearance))
@@ -1733,16 +1734,18 @@
                    origin ^^input-origin-pos
                    vector-j ^^pipe-direction
                    vector-i ^^pipe-x-direction
+                   display? nil
                    )
                 (global-coordinate-system :class 'coordinate-system-class
                     origin (list 0 0 (- 0 ^^pipe-center-to-bottom-baseplate))
                     reference-coordinate-system (the ubeam-flat-coordinate-system)
-                  
+                  display? nil
                   )
 
                (base-plate-coordinate-system :class 'coordinate-system-class
                    origin (list 0.0 0.0 (- (/ ^^base-plate-depth 2)))
                    reference-coordinate-system ^^global-coordinate-system
+                   display? nil
                    )
                (base-plate :class 'box-object
                    height ^^base-plate-height
@@ -1763,6 +1766,7 @@
                    pipe-height ^^pipe-height
                    base-depth ^^base-depth
                    diameter ^^pipe-diameter
+                   pipe-center-to-bottom-baseplate ^^pipe-center-to-bottom-baseplate
                    input-origin-pos ^^input-origin-pos
                    pipe-direction ^^pipe-direction
                    pipe-up-direction ^^pipe-up-direction
