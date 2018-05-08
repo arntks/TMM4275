@@ -200,9 +200,12 @@
                ;;Point on mirror, connected to the position input
                input-origin-pos (default (list 0.0 0.0 0.0))
                ;;
+               base-plate-depth (default 1)
+               pipe-center-to-baseplate (* ^outer-pipe-radius 2)
                thickness (default (/ ^outer-pipe-radius 20))
                pipe-direction (default (list 1.0 0.0 0.0))
                pipe-up-direction(default (list 0.0 0.0 1.0))
+               
                ;;The reference coordinate system; default set in (0.0 0.0 0.0) 
                reference-coordinate-system (default nil)
                )
@@ -218,7 +221,7 @@
                    display? nil
                    )
               (lower-pipe-coordinate-system :class 'coordinate-system-class
-                   origin (list 0.0 (-^^outer-pipe-radius) 0.0)
+                   origin (list 0.0 (-(- ^^pipe-center-to-baseplate ^^base-plate-depth)) 0.0)
                    reference-coordinate-system ^^pipe-coordinate-system
                    display? nil
                    )
@@ -242,7 +245,7 @@
                   outer ^^outer-pipe-radius
                   (flat-pipe1 :class 'line-object
                               point1 '(0.0 0.0 0.0)
-                              point2 (list 0.0 (-^^outer) 0.0)
+                              point2 (list 0.0 (-(- ^^pipe-center-to-baseplate ^^base-plate-depth)) 0.0)
                               )
                   reference-coordinate-system ^^pipe-coordinate-system
                   )
@@ -1537,7 +1540,7 @@
                
                ;;outer-pipe-radius (default 1)
                ;;Clearance between pipe and base-plate
-               clearance ^^pipe-center-to-bottom-baseplate
+               clearance ^pipe-center-to-bottom-baseplate
 
 
  
@@ -1682,6 +1685,8 @@
                    label "pipe-diameter: "
                    )
                outer-pipe-radius (/ ^pipe-diameter 2)
+
+              ;; pipe-center-to-bottom-baseplate (default ^pipe-diameter)
 
                (pipe-center-to-bottom-baseplate :class 'editable-data-property-class
                   formula ^pipe-diameter
