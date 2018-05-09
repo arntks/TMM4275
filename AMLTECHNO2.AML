@@ -2173,6 +2173,7 @@
                                 )
                    )
                )
+  )
   
 
 (define-class pipe-support-master-class
@@ -2203,7 +2204,8 @@
                                                         "Roller"
                                                         "Flat"
                                                         "Double"
-                                                        "Saddle")
+                                                        "Saddle"
+                                                        "Hanger")
                                                        )
                   )
               (pipe-view :class 'editable-data-property-class
@@ -2369,8 +2371,13 @@
      (change-value !support-type 'saddle)
      (list 'saddle)
      )
+    (6
+     (change-value !support-type 'hanger)
+     (list 'hanger)
+    )
     )
   )
+
 (define-method choosing-pipe-method editable-data-property-class (index)
   (case index
     (1
