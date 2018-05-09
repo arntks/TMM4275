@@ -2305,6 +2305,7 @@
                                 ('flat 'pipe-support-flat-class)
                                 ('double 'pipe-support-pipe-class)
                                 ('saddle 'pipe-support-simple-saddle-class)
+                                ('hanger 'hanger-assembly-class)
                                 (t 'null-object)
                                 )
                        
